@@ -1,0 +1,14 @@
+
+.visible.transition {
+  margin-top: 0 auto !important;
+  display: inline-block !important;
+  position: relative;
+  width: 100%;
+  margin: 0 auto !important;
+}
+
+#container {
+  width: 60%;
+  margin: 0 auto;
+  margin-top: 3em;
+}

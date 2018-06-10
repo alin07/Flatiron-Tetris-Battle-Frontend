@@ -1,8 +1,8 @@
 import { CREATE_ROOM,
          GET_ALL_ROOMS,
+         JOIN_ROOM,
          LEAVE_ROOM,
-         DISBAND_ROOM,
-         SET_ROOM_STATUS } from '../actions/types'
+         DISBAND_ROOM } from '../actions/types'
 
 const initState = {
   rooms: []
@@ -11,19 +11,16 @@ const initState = {
 const rooms = (state = initState, action) => {
   switch(action.type) {
     case CREATE_ROOM:
-      console.log("action payload",action.payload)
-      return {...state, rooms: [...state.rooms, action.payload]}
+      return { ...state, rooms: [...state.rooms, action.payload] }
     case GET_ALL_ROOMS:
-      return action.payload ? action.payload : state
-    case LEAVE_ROOM:
-      console.log('leave room!')
-      return null
+      return { rooms: [...action.payload] }
+    case JOIN_ROOM:
+      return { rooms: [ ...state.rooms.filter(r => r._id !== action.payload._id), action.payload ] }
     case DISBAND_ROOM:
-      console.log('disband room!')
-      return null
-    case SET_ROOM_STATUS:
-      console.log('set room status!')
-      return null
+      return { rooms: [ ...state.rooms.filter(r => r._id !== action.payload) ] }
+    case LEAVE_ROOM:
+      debugger
+      return { rooms: [ ...state.rooms.filter(r => r._id !== action.payload._id), action.payload ] }
     default:
       return state
   }

@@ -7,17 +7,23 @@ class UserContainer extends Component {
   constructor(props){
     super(props)
     this.state = {
-      isReady: []
+      isReady: [],
+      areAllUsersReady: false
     }
   }
 
   componentDidMount(){
-    fetch('http://localhost:3000/api/v1/users'+this.props.room)
-      .then('')
+    // fetch('http://localhost:3000/api/v1/users/'+this.props.roomId)
+    //   .then(r => r.json())
+    //   .then(r => {
+    //     this.setState({
+    //       users: r
+    //     })
+    //   })
   }
 
   render() {
-    const users = [{username:'alice'}, {username:'caitlyn'}].map((u,i) => <User key={i} user={u}/>)
+    const users = this.props.users.map((u,i) => <User hostId={this.props.hostId} areAllUsersReady={this.areAllUsersReady} key={i} user={u}/>)
 
     return (
       <List divided verticalAlign='middle'>

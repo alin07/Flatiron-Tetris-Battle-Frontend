@@ -19,9 +19,7 @@ class RoomsContainer extends Component {
   }
 
   render() {
-    const rooms = this.props.rooms ? this.props.rooms.map((r) => <Room key={r._id} {...this.props} room={r}/>) : null
-    console.log("rooms from roomscontainer", rooms)
-
+    const rooms = this.props.rooms.map((r) => <Room key={r._id} {...this.props} room={r}/>)
     return (
       <div>
         <List divided verticalAlign='middle'>

@@ -1,19 +1,19 @@
-import { GET_ALL_USERS_BY_IDS } from './types'
-import axios from 'axios'
+import { GET_ALL_USERS } from './types'
 
-export default function getAllUsersByIds() {
+export default function getAllUsers(id) {
   return dispatch => {
-    console.log('getting users by ids async', res.data)
-    const params = res.data
-
-
+    fetch('http://localhost:3000/api/v1/users/'+id)
+      .then(r => r.json())
+      .then(r => {
+        dispatch(getAllUsersAsync(r))
+      })
   }
 }
 
-const getAllUsersByIdsAsync = (rooms) => {
+const getAllUsersAsync = (users) => {
 
   return {
-    type: GET_ALL_USERS_BY_IDS,
-    payload: rooms
+    type: GET_ALL_USERS,
+    payload: users
   }
 }

@@ -8,7 +8,7 @@ import RoomNameReducer from './newRoom'
 const reducers = combineReducers({
   rooms: RoomsReducer,
   users: UsersReducer,
-  roomName: RoomNameReducer,
+  roomName: RoomNameReducer
 })
 
 export default reducers;

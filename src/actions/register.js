@@ -1,5 +1,4 @@
 import { REGISTER } from './types'
-import axios from 'axios'
 
 export default function register(event) {
   return dispatch => {

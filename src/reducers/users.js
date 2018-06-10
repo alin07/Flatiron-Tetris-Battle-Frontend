@@ -1,4 +1,5 @@
-import { GET_ALL_USERS_BY_IDS, LOGIN } from '../actions/types'
+import { TOGGLE_READY,
+         GET_ALL_USERS } from '../actions/types'
 
 const initState = {
   users: []
@@ -6,8 +7,10 @@ const initState = {
 
 const users = (state = initState, action) => {
   switch(action.type) {
-    case GET_ALL_USERS_BY_IDS:
-      return {...state, }
+    case GET_ALL_USERS:
+      return { ...state, users: action.payload.map(u => ({ ...u, isReady: false })) }
+    case TOGGLE_READY:
+      return state
     default:
       return state
   }

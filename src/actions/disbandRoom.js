@@ -11,7 +11,6 @@ export default function disbandRoom(roomId) {
     })
       .then(r => r.json())
       .then(res => {
-        debugger
         dispatch(disbandRoomAsync(res))
     })
   }

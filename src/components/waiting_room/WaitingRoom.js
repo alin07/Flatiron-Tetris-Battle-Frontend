@@ -33,12 +33,11 @@ class WaitingRoom extends Component {
     )
 
     this.props.getAllUsers(this.roomId)
-    // fetch('')
   }
 
   onDisbandRoom = (e) => {
-    console.log(e.target)
     this.props.disbandRoom(this.roomId)
+    this.props.history.push('/')
   }
 
   onLeaveRoom = (e) => {
@@ -47,6 +46,7 @@ class WaitingRoom extends Component {
   }
 
   render() {
+    console.log('rumu:', this.state.room)
     return (
       <div id="container">
         <Header as='h1'>{this.state.room.name}</Header>

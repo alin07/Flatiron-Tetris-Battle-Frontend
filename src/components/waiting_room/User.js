@@ -1,6 +1,11 @@
 import React, { Component } from 'react'
 import { List, Image, Checkbox, Button } from 'semantic-ui-react'
 
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
+import toggleReady from '../../actions/toggleReady'
+
+
 class User extends Component {
 
   constructor(props){
@@ -16,29 +21,31 @@ class User extends Component {
     this.setState({
       isReady: currentIsReady
     })
+
+    this.props.toggleReady(localStorage.userId, currentIsReady)
+
+  }
+  areAllUsersReady = () => {
+    this.props.users.every(u => u.isReady)
   }
 
   render() {
     /*
-
     const controls = localStorage.username === this.props.user.username
       ? (<Button primary disabled={this.props.}>Start Game</Button>)
       : (Ready? <Checkbox toggle checked={this.state.isReady} onChange={this.toggleReady}/>)
     */
-
-
-  const readyCheckBox = (
-    <div>
-      Ready?
-      <Checkbox disabled={ localStorage.username !== this.props.user.username } toggle checked={ this.state.isReady } onChange={ this.toggleReady }/>
-    </div>
-  )
-  console.log(this.props.user)
-    return(
+    const readyCheckBox = (
+      <div>
+        Ready?
+        <Checkbox disabled={ localStorage.username !== this.props.user.username } toggle checked={ this.state.isReady } onChange={ this.toggleReady }/>
+      </div>
+    )
+    return (
       <List.Item>
         <List.Content floated='right'>
-        { localStorage.userId === this.props.user._id
-          ? <Button disabled={ this.props.areAllUsersReady }>Start Game</Button>
+        { this.props.hostId === this.props.user._id
+          ? <Button disabled={ !this.areAllUsersReady || this.props.hostId !== localStorage.userId }>Start Game</Button>
           : readyCheckBox
         }
         </List.Content>
@@ -49,4 +56,15 @@ class User extends Component {
 }
 
 
-export default User
+function mapStateToProps(state){
+  return {
+    users: state.users
+  }
+}
+function mapDispatchToProps(dispatch) {
+  return bindActionCreators({
+    toggleReady: (userId, toggle) => toggleReady(userId, toggle)
+  }, dispatch)
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(User)

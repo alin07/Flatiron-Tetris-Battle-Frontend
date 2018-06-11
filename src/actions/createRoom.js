@@ -1,8 +1,8 @@
 import { CREATE_ROOM } from './types'
 
 export default function createRoom(event) {
-  const id = localStorage.userId ? localStorage.userId : "5b15c5d330572feef795c384"
-  const username = localStorage.username ? localStorage.username : "test01"
+  const id = localStorage.userId
+  const username = localStorage.username
   const room = { name: event.target.querySelector('input').value, host: id, users: [id] }
   console.log(room)
 
@@ -15,7 +15,9 @@ export default function createRoom(event) {
       body: JSON.stringify(room)
     }).then(r => r.json()).then(r => {
       dispatch(createRoomAsync(r))
-      // send websockets
+      return r
+    }).then((r) => {
+       window.location.href = 'http://localhost:3001/r/'+r._id
     })
   }
 }

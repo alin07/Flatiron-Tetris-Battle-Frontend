@@ -7,19 +7,11 @@ class UserContainer extends Component {
   constructor(props){
     super(props)
     this.state = {
-      isReady: [],
-      areAllUsersReady: false
+      isReady: []
     }
   }
 
   componentDidMount(){
-    // fetch('http://localhost:3000/api/v1/users/'+this.props.roomId)
-    //   .then(r => r.json())
-    //   .then(r => {
-    //     this.setState({
-    //       users: r
-    //     })
-    //   })
   }
 
   render() {

@@ -14,7 +14,7 @@ class Home extends Component {
   render() {
     return (
       <div>
-        {localStorage.userId ? <CreateRoomModal /> : null}
+        {localStorage.userId ? <CreateRoomModal {...this.props}/> : null}
         {localStorage.userId ? <Logout {...this.props}/> : null}
         <RoomsContainer {...this.props} />
       </div>

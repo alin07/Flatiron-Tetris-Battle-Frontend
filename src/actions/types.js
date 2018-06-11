@@ -11,6 +11,9 @@ export const GET_ROOM = 'get_room'
 export const GET_ALL_USERS = 'get_all_users'
 export const SEND_MESSAGE = 'send_message'
 export const TOGGLE_READY = 'toggle_ready'
+export const CHANGE_URL = 'change_url'
+
+
 
 
 

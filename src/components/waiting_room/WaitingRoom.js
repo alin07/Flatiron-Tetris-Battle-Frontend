@@ -27,12 +27,18 @@ class WaitingRoom extends Component {
   componentDidMount() {
     console.log('room id: '+this.roomId)
     // this.props.getRoom(this.roomId)
+    debugger
     fetch('http://localhost:3000/api/v1/rooms/'+this.roomId)
       .then(r => r.json())
       .then(r => {
         this.setState({
           room: r
         })
+        return r
+      }
+    ).then(
+      r => {
+        this.props.getAllUsers(this.roomId, r.host)
       }
     )
 
@@ -65,7 +71,7 @@ class WaitingRoom extends Component {
       that.handleSocketInput(data)
     }
 
-    this.props.getAllUsers(this.roomId)
+
   }
 
   componentWillUnmount() {
@@ -83,7 +89,7 @@ class WaitingRoom extends Component {
     switch(data.type) {
       case 'CONNECTION':
         console.log('connected')
-        this.props.getAllUsers(data.subscription)
+        this.props.getAllUsers(data.subscription, this.state.room.host)
         break
       case 'DISBAND':
         if(data.user === localStorage.userId)
@@ -97,6 +103,9 @@ class WaitingRoom extends Component {
       case 'TOGGLE_READY':
         console.log('doop doop')
         this.toggleReady(data.payload.userId, data.payload.toggle)
+        break
+      case 'START':
+        this.startGame()
         break
       default:
         console.log(data, " is not supported")
@@ -141,11 +150,42 @@ class WaitingRoom extends Component {
     else{
       this.props.getAllUsers(roomId)
     }
+    // let home page know
+    this.userSocket.send(JSON.stringify({
+      subscription: 'room',
+      type:'LEAVE',
+      user: localStorage.userId,
+      payload: {
+        roomId: this.roomId,
+        userId: localStorage.userId
+      }
+    }))
+  }
+  componentWillUnmount() {
+    this.userSocket.close()
   }
 
   toggleReady = (user, toggle) => {
     this.props.toggleReady(user, toggle)
   }
+
+  startGame = () => {
+    this.props.history.push('/g/'+this.roomId)
+  }
+
+  onStartGame = () => {
+    console.log('start gaem!')
+    this.userSocket.send(JSON.stringify({
+      subscription: this.roomId,
+      type:'START',
+      user: localStorage.userId,
+      payload: {
+        roomId: this.roomId,
+        users: this.props.users
+      }
+    }))
+  }
+
 
   render() {
     return (
@@ -156,7 +196,7 @@ class WaitingRoom extends Component {
           ? <Button onClick={this.onDisbandRoom}>Disband Room</Button>
           : <Button onClick={this.onLeaveRoom}>Leave Room</Button>
         }
-        <UsersContainer hostId={this.state.room.host} toggleReady={this.toggleReady} socket={this.userSocket} users={this.props.users.users} roomId={this.roomId} />
+        <UsersContainer hostId={this.state.room.host} onStartGame={this.onStartGame} toggleReady={this.toggleReady} socket={this.userSocket} users={this.props.users.users} roomId={this.roomId} />
       </div>
     )
   }
@@ -175,7 +215,7 @@ function mapDispatchToProps(dispatch){
     disbandRoom: (id) => disbandRoom(id),
     leaveRoom: (roomId, userId) => leaveRoom(roomId, userId),
     getRoom: (id) => getRoom(id),
-    getAllUsers: (id) => getAllUsers(id),
+    getAllUsers: (id, hostId) => getAllUsers(id, hostId),
     toggleReady: (userId, toggle) => toggleReady(userId, toggle)
   }, dispatch)
 }

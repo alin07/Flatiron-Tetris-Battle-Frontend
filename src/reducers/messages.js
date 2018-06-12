@@ -6,7 +6,6 @@ const initState = {
   messages: []
 }
 
-
 const messages = (state = initState, action) => {
   switch(action.type) {
     default:

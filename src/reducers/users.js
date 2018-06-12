@@ -8,10 +8,11 @@ const initState = {
 const users = (state = initState, action) => {
   switch(action.type) {
     case GET_ALL_USERS:
-      return { ...state, users: action.payload.map(u => ({ ...u, isReady: false })) }
+      return { ...state, users: action.payload.map(u => ({ ...u, isReady: u._id === action.hostId ? true : false })) }
     case TOGGLE_READY:
       const allUsers = Object.assign([], state.users)
       allUsers.find(u => u._id === action.payload.userId).isReady = action.payload.toggle
+      console.log(allUsers)
       return { ...state, users: [...allUsers] }
     default:
       return state

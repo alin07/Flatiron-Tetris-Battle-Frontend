@@ -13,11 +13,9 @@ class User extends Component {
   }
 
   componentDidMount() {
-
   }
 
   toggleReady = (e) => {
-    //TODO: websockets
     this.props.toggleReady.bind(this)()
   }
 
@@ -34,9 +32,11 @@ class User extends Component {
     }))
   }
 
-  areAllUsersReady = () => {
-    this.props.users.every(u => u.isReady)
-  }
+  // areAllUsersReady = () => {
+  //   console.log(this.props.users)
+  //   debugger
+  //   this.props.users.every(u => u._id === this.props.hostId || u.isReady)
+  // }
 
   render() {
 
@@ -47,11 +47,15 @@ class User extends Component {
           checked={ this.props.users.find(u => u._id === this.props.user._id).isReady } onChange={ this.onToggleReady.bind(this) }/>
       </div>
     )
+    //!isAllReady || this.props.hostId !== localStorage.userId
+    const isAllReady = this.props.users.every(u => u._id === this.props.hostId || u.isReady)
+    console.log("is all ready ",isAllReady)
+    console.log("disabled?: ", !isAllReady || this.props.hostId !== localStorage.userId )
     return (
       <List.Item>
         <List.Content floated='right'>
         { this.props.hostId === this.props.user._id
-          ? <Button disabled={ !this.areAllUsersReady || this.props.hostId !== localStorage.userId }>Start Game</Button>
+          ? <Button onClick={this.props.onStartGame} disabled={ !isAllReady || this.props.hostId !== localStorage.userId }>Start Game</Button>
           : readyCheckBox
         }
         </List.Content>

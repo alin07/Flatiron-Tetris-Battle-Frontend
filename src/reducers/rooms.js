@@ -17,10 +17,8 @@ const rooms = (state = initState, action) => {
     case JOIN_ROOM:
       return { rooms: [ ...state.rooms.filter(r => r._id !== action.payload._id), action.payload ] }
     case DISBAND_ROOM:
-      debugger
       return { rooms: [ ...state.rooms.filter(r => r._id !== action.payload) ] }
     case LEAVE_ROOM:
-      debugger
       return { rooms: [ ...state.rooms.filter(r => r._id !== action.payload._id), action.payload ] }
     default:
       return state

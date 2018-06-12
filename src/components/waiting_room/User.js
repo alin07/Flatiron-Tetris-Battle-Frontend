@@ -10,35 +10,41 @@ class User extends Component {
 
   constructor(props){
     super(props)
-    this.state = {
-      isReady: false
-    }
+  }
+
+  componentDidMount() {
+
   }
 
   toggleReady = (e) => {
     //TODO: websockets
-    const currentIsReady = !this.state.isReady
-    this.setState({
-      isReady: currentIsReady
-    })
-
-    this.props.toggleReady(localStorage.userId, currentIsReady)
-
+    this.props.toggleReady.bind(this)()
   }
+
+  onToggleReady = () => {
+    console.log('on toggleReady')
+    this.props.socket.send(JSON.stringify({
+      subscription: this.props.roomId,
+      type:'TOGGLE_READY',
+      user: localStorage.userId,
+      payload: {
+        toggle: !this.props.users.find(u => u._id === localStorage.userId).isReady,
+        userId: localStorage.userId
+      }
+    }))
+  }
+
   areAllUsersReady = () => {
     this.props.users.every(u => u.isReady)
   }
 
   render() {
-    /*
-    const controls = localStorage.username === this.props.user.username
-      ? (<Button primary disabled={this.props.}>Start Game</Button>)
-      : (Ready? <Checkbox toggle checked={this.state.isReady} onChange={this.toggleReady}/>)
-    */
+
     const readyCheckBox = (
       <div>
         Ready?
-        <Checkbox disabled={ localStorage.username !== this.props.user.username } toggle checked={ this.state.isReady } onChange={ this.toggleReady }/>
+        <Checkbox disabled={ localStorage.username !== this.props.user.username } toggle
+          checked={ this.props.users.find(u => u._id === this.props.user._id).isReady } onChange={ this.onToggleReady.bind(this) }/>
       </div>
     )
     return (
@@ -58,7 +64,7 @@ class User extends Component {
 
 function mapStateToProps(state){
   return {
-    users: state.users
+    users: state.users.users
   }
 }
 function mapDispatchToProps(dispatch) {

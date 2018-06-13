@@ -12,3 +12,81 @@
   margin: 0 auto;
   margin-top: 3em;
 }
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+
+.grid-item{
+  border: 1px solid black;
+}
+
+
+.grid-template-rows {
+  display: flex;
+}
+
+.grid-item {
+  padding: 11px;
+  color: white;
+  line-height: 1;
+  display: inline-block;
+}
+
+.game-wrapper {
+  display:flex;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.inline {
+  text-align:center;
+  float:left;
+  overflow:hidden;
+  margin: 1rem;
+}
+
+.hidden {
+  visibility:hidden
+}
+
+/* ['white', 'dodger-blue', 'tomato', 'yellow', 'orange', 'mediumseagreen', 'slate-blue']
+} */
+.white {
+  background-color: white;
+}
+.dodgerblue {
+  background-color: dodgerblue;
+}
+.tomato {
+  background-color: tomato;
+}
+.yellow {
+  background-color: yellow;
+}
+.orange {
+  background-color: orange;
+}
+.mediumseagreen {
+  background-color: mediumseagreen;
+}
+.slateblue {
+  background-color: slateblue;
+}
+.pink {
+  background-color: pink;
+}
+
+/*
+.row {
+  display: inline-grid;
+} */
+/*
+body {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  grid-template-rows: 1fr 90px;
+  grid-template-columns: 1fr 1fr 1fr;
+} */

@@ -22,6 +22,7 @@ class Grid extends Component {
       queueOfPieces: [],
       rotationAngle: 3
     }
+
     this.hasReachedBottom = this.hasReachedBottom.bind(this)
     this.keyboardEvent = this.keyboardEvent.bind(this)
   }

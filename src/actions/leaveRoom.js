@@ -12,6 +12,7 @@ export default function leaveRoom(roomId, userId) {
       .then(r => r.json())
       .then(res => {
         dispatch(leaveRoomAsync(res))
+
     })
   }
 }

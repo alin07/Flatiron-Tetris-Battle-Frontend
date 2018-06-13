@@ -19,7 +19,7 @@ const rooms = (state = initState, action) => {
     case DISBAND_ROOM:
       return { rooms: [ ...state.rooms.filter(r => r._id !== action.payload) ] }
     case LEAVE_ROOM:
-      return { rooms: [ ...state.rooms.filter(r => r._id !== action.payload._id), action.payload ] }
+      return { rooms: [ ...state.rooms.filter(r => r._id !== action.payload._id && r), action.payload ] }
     default:
       return state
   }

@@ -11,7 +11,6 @@ import getAllUsers from '../../actions/getAllUsers'
 
 class Room extends Component {
   onJoinRoom = (e) => {
-    //change urls and also fetch request
     this.props.joinRoom(localStorage.userId, e.target.id)
     this.props.history.push('/r/'+e.target.id)
   }

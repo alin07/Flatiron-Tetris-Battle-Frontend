@@ -30,7 +30,15 @@ class User extends Component {
   }
 
   onStartGame = () => {
-    this.props.history.push('/g/'+this.props.roomId)
+    console.log('on ')
+    this.props.socket.send(JSON.stringify({
+      subscription: this.props.roomId,
+      type:'START_GAME',
+      user: localStorage.userId,
+      payload: {
+        roomId: this.props.roomId
+      }
+    }))
   }
 
   render() {

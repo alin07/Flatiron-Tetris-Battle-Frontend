@@ -24,6 +24,8 @@ class Grid extends Component {
     }
     this.hasReachedBottom = this.hasReachedBottom.bind(this)
     this.keyboardEvent = this.keyboardEvent.bind(this)
+    this.onMoveHorizontal = this.onMoveHorizontal.bind(this)
+    this.onMoveDown = this.onMoveDown.bind(this)
   }
 
   componentDidMount() {
@@ -51,6 +53,7 @@ class Grid extends Component {
     this.setState({
       rows: rows
     })
+
     return rows
   }
 
@@ -293,24 +296,6 @@ class Grid extends Component {
   //    return arr
   // }
 
-  moveDown = () => {
-    // if(this.props.playGame){ // check if the game is paused/started or not
-      if(!this.isGameOver() && !this.hasReachedBottom() && !this.hasPieceDirectlyBelow()){
-        const point = this.state.referencePoint
-        let rows = this.removePiece(this.state.rows)
-        this.setState({
-          referencePoint: [point[0] + 1, point[1]]
-        })
-        this.placePiece(rows, 2)
-      } else if(this.isGameOver()) {
-        console.log('game over!')
-      } else {
-        // TODO: check to see if row is completed
-
-
-        this.resetTetrominoState()
-      }
-    }
   // }
 
   isRowCompleted = () => {
@@ -326,6 +311,52 @@ class Grid extends Component {
     })
   }
 
+  sendData = (data) => {
+    this.props.socket.send(JSON.stringify({
+      data
+    }))
+  }
+
+  onMoveHorizontal = (data) => {
+    this.removePiece(data.payload.rows)
+    this.setState({
+      referencePoint: data.payload.referencePoint,
+    })
+    this.placePiece(data.payload.rows, data.payload.color)
+  }
+
+  onMoveDown = (data) => {
+    let rows = this.removePiece(data.payload.rows)
+    this.setState({
+      referencePoint: data.payload.referencePoint
+    })
+    this.placePiece(rows, data.payload.color)
+  }
+
+    moveDown = () => {
+      // if(this.props.playGame){ // check if the game is paused/started or not
+      if(!this.isGameOver() && !this.hasReachedBottom() && !this.hasPieceDirectlyBelow()){
+        const point = this.state.referencePoint
+        this.sendData({
+          type: 'DOWN',
+          user: localStorage.userId,
+          payload: {
+            referencePoint: [point[0] + 1, point[1]],
+            rows: this.state.rows,
+            color: 2
+          }
+        })
+      } else if(this.isGameOver()) {
+        console.log('game over!')
+
+      } else {
+        // TODO: check to see if row is completed
+
+
+        this.resetTetrominoState()
+      }
+    }
+
   keyboardEvent = () => {
     const that = this
     return document.addEventListener('keydown', (e) => {
@@ -336,21 +367,29 @@ class Grid extends Component {
         if (e.key === "ArrowLeft") {
           if(that.canMoveHorizontally(-1)) {
             let point = that.state.referencePoint
-            that.removePiece(that.state.rows)
-            that.setState({
-              referencePoint: [point[0], point[1] - 1],
-              currentColumn: that.state.currentColumn - 1,
+            that.sendData({
+              type: 'LEFT',
+              user: localStorage.userId,
+              payload: {
+                referencePoint: [point[0], point[1] - 1],
+                color: 2,
+                rows: that.state.rows
+              }
             })
-            that.placePiece(that.state.rows, 2)
+
           }
         } else if(e.key === "ArrowRight") {
           if(that.canMoveHorizontally(1)) {
             let point = that.state.referencePoint
-            that.removePiece(that.state.rows)
-            that.setState({
-              referencePoint: [point[0], point[1] + 1],
+            that.sendData({
+              type: 'RIGHT',
+              user: localStorage.userId,
+              payload: {
+                referencePoint: [point[0], point[1] + 1],
+                color: 2,
+                rows: that.state.rows
+              }
             })
-            that.placePiece(that.state.rows, 2)
           }
         } else if(e.key === "ArrowUp") {
           that.rotate()

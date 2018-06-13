@@ -2,7 +2,7 @@ import { TOGGLE_READY,
          GET_ALL_USERS } from '../actions/types'
 
 const initState = {
-  users: [],
+  users: []
 }
 
 const users = (state = initState, action) => {
@@ -10,9 +10,18 @@ const users = (state = initState, action) => {
     case GET_ALL_USERS:
       return { ...state, users: action.payload.map(u => ({ ...u, isReady: false })) }
     case TOGGLE_READY:
-      const allUsers = Object.assign([], state.users)
-      allUsers.find(u => u._id === action.payload.userId).isReady = action.payload.toggle
-      return { ...state, users: [...allUsers] }
+      const index = state.users.map(u => u._id).indexOf(action.payload.userId)
+      const user = state.users.find(u => u._id === action.payload.userId)
+      let result = []
+      user.isReady = action.payload.toggle
+      if(state.users.slice(0, index).length > 0){
+        result = [ ...result, ...state.users.slice(0, index) ]
+      }
+      result.push(user)
+      if(state.users.slice(index+1, state.users.length - index + 1).length > 0){
+        result = [ ...result, ...state.users.slice(index+1, state.users.length - index +1) ]
+      }
+      return { ...state, users: [...result] }
     default:
       return state
   }

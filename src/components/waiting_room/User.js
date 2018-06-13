@@ -16,11 +16,6 @@ class User extends Component {
 
   }
 
-  toggleReady = (e) => {
-    //TODO: websockets
-    this.props.toggleReady.bind(this)()
-  }
-
   onToggleReady = () => {
     console.log('on toggleReady')
     this.props.socket.send(JSON.stringify({
@@ -34,12 +29,12 @@ class User extends Component {
     }))
   }
 
-  areAllUsersReady = () => {
-    this.props.users.every(u => u.isReady)
+  onStartGame = () => {
+    this.props.history.push('/g/'+this.props.roomId)
   }
 
   render() {
-
+    const ready = this.props.users.every(u => u.isReady || u._id === this.props.hostId ) && this.props.hostId === localStorage.userId
     const readyCheckBox = (
       <div>
         Ready?
@@ -51,7 +46,7 @@ class User extends Component {
       <List.Item>
         <List.Content floated='right'>
         { this.props.hostId === this.props.user._id
-          ? <Button disabled={ !this.areAllUsersReady || this.props.hostId !== localStorage.userId }>Start Game</Button>
+          ? <Button onClick={this.onStartGame.bind(this)} disabled={ !ready }>Start Game</Button>
           : readyCheckBox
         }
         </List.Content>

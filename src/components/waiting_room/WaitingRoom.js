@@ -156,7 +156,7 @@ class WaitingRoom extends Component {
           ? <Button onClick={this.onDisbandRoom}>Disband Room</Button>
           : <Button onClick={this.onLeaveRoom}>Leave Room</Button>
         }
-        <UsersContainer hostId={this.state.room.host} toggleReady={this.toggleReady} socket={this.userSocket} users={this.props.users.users} roomId={this.roomId} />
+        <UsersContainer {...this.props} hostId={this.state.room.host} toggleReady={this.toggleReady} socket={this.userSocket} users={this.props.users.users} roomId={this.roomId} />
       </div>
     )
   }

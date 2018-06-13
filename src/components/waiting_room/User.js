@@ -10,52 +10,42 @@ class User extends Component {
 
   constructor(props){
     super(props)
-  }
-
-  componentDidMount() {
+    this.state = {
+      isReady: false
+    }
   }
 
   toggleReady = (e) => {
-    this.props.toggleReady.bind(this)()
-  }
+    //TODO: websockets
+    const currentIsReady = !this.state.isReady
+    this.setState({
+      isReady: currentIsReady
+    })
 
-  onToggleReady = () => {
-    console.log('on toggleReady')
-    this.props.socket.send(JSON.stringify({
-      subscription: this.props.roomId,
-      type:'TOGGLE_READY',
-      user: localStorage.userId,
-      payload: {
-        toggle: !this.props.users.find(u => u._id === localStorage.userId).isReady,
-        userId: localStorage.userId
-      }
-    }))
-  }
+    this.props.toggleReady(localStorage.userId, currentIsReady)
 
-  // areAllUsersReady = () => {
-  //   console.log(this.props.users)
-  //   debugger
-  //   this.props.users.every(u => u._id === this.props.hostId || u.isReady)
-  // }
+  }
+  areAllUsersReady = () => {
+    this.props.users.every(u => u.isReady)
+  }
 
   render() {
-
+    /*
+    const controls = localStorage.username === this.props.user.username
+      ? (<Button primary disabled={this.props.}>Start Game</Button>)
+      : (Ready? <Checkbox toggle checked={this.state.isReady} onChange={this.toggleReady}/>)
+    */
     const readyCheckBox = (
       <div>
         Ready?
-        <Checkbox disabled={ localStorage.username !== this.props.user.username } toggle
-          checked={ this.props.users.find(u => u._id === this.props.user._id).isReady } onChange={ this.onToggleReady.bind(this) }/>
+        <Checkbox disabled={ localStorage.username !== this.props.user.username } toggle checked={ this.state.isReady } onChange={ this.toggleReady }/>
       </div>
     )
-    //!isAllReady || this.props.hostId !== localStorage.userId
-    const isAllReady = this.props.users.every(u => u._id === this.props.hostId || u.isReady)
-    console.log("is all ready ",isAllReady)
-    console.log("disabled?: ", !isAllReady || this.props.hostId !== localStorage.userId )
     return (
       <List.Item>
         <List.Content floated='right'>
         { this.props.hostId === this.props.user._id
-          ? <Button onClick={this.props.onStartGame} disabled={ !isAllReady || this.props.hostId !== localStorage.userId }>Start Game</Button>
+          ? <Button disabled={ !this.areAllUsersReady || this.props.hostId !== localStorage.userId }>Start Game</Button>
           : readyCheckBox
         }
         </List.Content>
@@ -68,7 +58,7 @@ class User extends Component {
 
 function mapStateToProps(state){
   return {
-    users: state.users.users
+    users: state.users
   }
 }
 function mapDispatchToProps(dispatch) {

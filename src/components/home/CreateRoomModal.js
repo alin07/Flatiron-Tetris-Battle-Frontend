@@ -13,7 +13,7 @@ const CreateRoomModal = (props) => {
       <Modal.Header>Create a Room</Modal.Header>
       <Modal.Content>
         <Modal.Description>
-          <Form onSubmit={(e) => onCreateRoom(e)}>
+          <Form onSubmit={props.createRoom}>
             <Form.Field>
               <label>Room Name</label>
               <input onChange={props.setNewRoom} />
@@ -26,21 +26,10 @@ const CreateRoomModal = (props) => {
   )
 }
 
-const onCreateRoom = (e) => {
-  this.props.socket.send({
-    subscription: 'room',
-    type: 'CREATE',
-    user: localStorage.userId,
-    payload: {
-
-    }
-  })
-}
-
 function mapDispatchToProps(dispatch){
   return bindActionCreators({
     setNewRoom,
-    createRoom: (name) => createRoom(name)
+    createRoom
   }, dispatch)
 }
 

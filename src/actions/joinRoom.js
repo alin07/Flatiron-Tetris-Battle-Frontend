@@ -3,7 +3,6 @@ import { JOIN_ROOM, GET_ALL_USERS } from './types'
 export default function joinRoom(userId, roomId) {
   //.put(room.join_room) -- /api/v1/rooms
   return dispatch => {
-    debugger
     fetch('http://localhost:3000/api/v1/rooms/',{
       method: 'PUT',
       headers: {

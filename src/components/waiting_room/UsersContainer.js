@@ -15,7 +15,7 @@ class UserContainer extends Component {
   }
 
   render() {
-    const users = this.props.users.map((u,i) => <User onStartGame={this.props.onStartGame} roomId={this.props.roomId} toggleReady={this.toggleReady} hostId={this.props.hostId} socket ={this.props.socket} areAllUsersReady={this.areAllUsersReady} key={i} user={u}/>)
+    const users = this.props.users.map((u,i) => <User hostId={this.props.hostId} areAllUsersReady={this.areAllUsersReady} key={i} user={u}/>)
 
     return (
       <List divided verticalAlign='middle'>

@@ -4,6 +4,7 @@ import { List, Image, Checkbox, Button } from 'semantic-ui-react'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
 import toggleReady from '../../actions/toggleReady'
+import setUpQueue from '../../actions/setUpQueue'
 
 
 class User extends Component {
@@ -27,6 +28,7 @@ class User extends Component {
         userId: localStorage.userId
       }
     }))
+    
   }
 
   onStartGame = () => {

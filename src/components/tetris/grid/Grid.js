@@ -1,57 +1,56 @@
 import React, { Component } from 'react'
 import GridRow from './GridRow'
 
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
+import setUpQueue from '../../../actions/setUpQueue'
+import nextQueue from '../../../actions/nextQueue'
+import updateRows from '../../../actions/updateRows'
+import setUpRows from '../../../actions/setUpRows'
+
 class Grid extends Component {
   constructor(props) {
     super(props)
-    this.terominoes = {
-      o: [[-1, 0],[0,-1],[-1,-1]],
-      i: [[-2,0],[-1,0],[1,0]],
-      z: [[0,-1],[1,0],[1,1]],
-      s: [[0,1],[1,0],[1,-1]],
-      l: [[-1,0],[1,0],[1,1]],
-      j: [[0,-1],[-1,0],[-2,0]],
-      t: [[-1,0],[0,-1],[0,1]]
-    }
-
-    this.state = {
-      rows: new Array(20),
-      currentPiece: [],
-      referencePoint: [0,5],
-      holdPiece:[],
-      queueOfPieces: [],
-      rotationAngle: 3
-    }
-
+    this.user = this.props.users.find(u => u._id === localStorage.userId)
     this.hasReachedBottom = this.hasReachedBottom.bind(this)
     this.keyboardEvent = this.keyboardEvent.bind(this)
   }
 
   componentDidMount() {
-      this.setUpQueue()
-      this.setState({
-        currentPiece: this.getNextPiece()
-      })
-      const result = this.setUpGrid()
+      this.user = this.props.users.find(u => u._id === localStorage.userId)
+      this.onGetNextPiece(this.user._id)
       this.updateBoard()
-      this.event = this.keyboardEvent()
+      this.user = this.props.users.find(u => u._id === localStorage.userId)
     }
 
-    placePiece = (rows, color) => {
-    let piece = this.state.currentPiece
-    const coord = this.state.referencePoint
-    if(!piece || piece.length < 1){
-      piece = this.getNextPiece()
-    }
-    rows[coord[0]][coord[1]] = color
-    for(let i = 0; i < piece.length; i++){
-      if(this.canPlacePiece(coord, piece, i)) {
-        rows[coord[0] + piece[i][0]][coord[1] + piece[i][1]] = color
+    placePiece = (rows, point, color, update) => {
+      this.user = this.props.users.find(u => u._id === localStorage.userId)
+      let piece = this.user.currentPiece
+      const coord = point ? point : this.user.referencePoint
+      // this.onGetNextPiece(this.user._id)
+      if(!piece || piece.length < 1){
+        piece = this.props.users.find(u => u._id === localStorage.userId).next
       }
-    }
-    this.setState({
-      rows: rows
-    })
+      if(coord[0] >= 0)
+        rows[coord[0]][coord[1]] = color
+
+      for(let i = 0; i < piece.length; i++){
+        if(this.canPlacePiece(coord, piece, i)) {
+          rows[coord[0] + piece[i][0]][coord[1] + piece[i][1]] = color
+        }
+      }
+      if(update){
+        const that = this
+        this.props.socket.send(JSON.stringify({
+          subscription: that.roomId,
+          type: 'UPDATE_ROWS',
+          user: this.user._id,
+          payload: {
+            rows: rows,
+            referencePoint: coord
+          }
+        }))
+      }
     return rows
   }
 
@@ -60,62 +59,49 @@ class Grid extends Component {
   }
 
   removePiece = (rows) => {
-    return this.placePiece(rows, 0)
+    return this.placePiece(rows, null, 0, false)
   }
 
   moveHorizontally = (rows, direction) => {
     rows = this.removePiece(rows)
-    const point = this.state.referencePoint
-    this.placePiece(rows, 0)
+    const point = this.user.referencePoint
+    this.placePiece(rows, null, 0, false)
     this.setState({
       referencePoint: [point[0], point[1] + direction]
     })
-    this.placePiece(rows, 2)
+    this.placePiece(rows, null, 2, true)
   }
 
  canMoveHorizontally = (direction) => {
-   const piece = [...this.state.currentPiece, [0,0]]
-   const rows = this.state.rows
+   const piece = [...this.user.currentPiece, [0,0]]
+   const rows = this.user.rows
    console.log(piece)
    for(let i = 0; i < piece.length; i++){
      if(!this.isIrrelevantPiece(piece[i], piece, direction) && this.hasCellDirectlyHorizontal(rows, piece[i], direction)){
        return false
      }
    }
-
    if(direction > 0){
      return !this.hasReachedRightWall()
    } else {
      return !this.hasReachedLeftWall()
    }
-
     return true
   }
 
   updateBoard = () => {
     const that = this
     setInterval(()=>{
-      // if(this.props.playGame)
+      if(this.props.users.every(u => u.gameReady)) {
+        this.user = this.props.users.find(u => u._id === localStorage.userId)
         that.moveDown()
+      }
     }, 1000)
   }
 
-  setUpGrid = () => {
-    let result = this.state.rows
-    let i = 0
-    let j = 0
-    for (i = 0; i < result.length; i++) {
-      result[i] =  new Array(10)
-      for(j = 0; j < result[i].length; j++){
-        result[i][j] = 0
-      }
-    }
-    return result;
-  }
-
   rotate = () => {
-    const rows = this.state.rows
-    const piece = this.state.currentPiece
+    const rows = this.user.rows
+    const piece = this.user.currentPiece
     const rotated = piece.map((row) => this.state.rotationAngle > 1
       ? this.state.rotationAngle === 2
         ? [row[1] * -1, row[0]]
@@ -128,71 +114,80 @@ class Grid extends Component {
       currentPiece: rotated,
       rotationAngle: this.state.rotationAngle + 1 % 4
     })
-    this.placePiece(rows, 2)
+    this.placePiece(rows, null, 2, true)
   };
 
   addNewPiece = () => {
-    const rows = this.state.rows
+    const rows = this.user.rows
     console.log('reached bottom? switch pieces/get a new piece')
-    this.setState({
-      currentPiece: this.getNextPiece(),
-      currentRow: 0,
-      currentColumn: 5
-    })
-    this.placePiece(rows)
+    // this.setState({
+    //   currentPiece: this.onGetNextPiece(localStorage.userId),
+    //   currentRow: 0,
+    //   currentColumn: 5
+    // })
+    this.placePiece(rows, null, this.user.currentPiece.color, true)
     this.setState({
       rows: rows,
     })
   }
 
   isGameOver = () => {
-    return this.state.referencePoint[0] < 1 && this.hasPieceDirectlyBelow() && this.state.rows[0][5] > 0
+    return false // this.user.referencePoint[0] < 1 && this.hasPieceDirectlyBelow() && this.user.rows[0][5] > 0
   }
 
-  setUpQueue = () => {
-    const keys = Object.keys(this.terominoes);
-    let queue = []
-    const that = this
-    keys.forEach(k => {
-      let i = 0;
-      for(i; i < 2; i++){
-        queue.push(that.terominoes[k])
+  // setUpQueue = () => {
+  //   const keys = Object.keys(this.terominoes);
+  //   let queue = []
+  //   const that = this
+  //   keys.forEach(k => {
+  //     let i = 0;
+  //     for(i; i < 2; i++){
+  //       queue.push(that.terominoes[k])
+  //     }
+  //   })
+  //   queue = this.shuffleQueue(queue)
+  //   console.log("shuffled queue: ", queue)
+  //   that.setState({
+  //     queueOfPieces: queue
+  //   })
+  //   return queue
+  // }
+  //
+  // shuffleQueue = (queue) => {
+  //   let ran = 0
+  //   let temp = 0
+  //   for(let i = 0; i < queue.length; i++){
+  //     ran = Math.floor(Math.random() * (queue.length))
+  //     temp = queue[i]
+  //     queue[i] = queue[ran]
+  //     queue[ran] = temp
+  //   }
+  //   return queue
+  // }
+
+  onGetNextPiece = () => {
+    if(this.props.users.find(u => u._id === this.user._id).queue.length < 1){
+      this.props.setUpQueue(this.props.tetrominoes, this.user._id)
+    }
+    this.props.socket.send(JSON.stringify({
+      subscription: this.props.roomId,
+      type:'NEXT_QUEUE',
+      user: this.user._id,
+      payload: {
+        user: this.props.users.find(u => u._id === this.user._id)
       }
-    })
-    queue = this.shuffleQueue(queue)
-    console.log("shuffled queue: ", queue)
-    that.setState({
-      queueOfPieces: queue
-    })
-    return queue
+    }))
+    // // this.setState({
+    // //   props.queue: queue
+    // // })
+    // return next
   }
-
-  shuffleQueue = (queue) => {
-    let ran = 0
-    let temp = 0
-    for(let i = 0; i < queue.length; i++){
-      ran = Math.floor(Math.random() * (queue.length))
-      temp = queue[i]
-      queue[i] = queue[ran]
-      queue[ran] = temp
-    }
-    return queue
-  }
-
-  getNextPiece = () => {
-    let queue = this.state.queueOfPieces
-    if(queue.length < 1){
-      queue = this.setUpQueue()
-    }
-    const next = queue.shift()
-    this.setState({
-      queueOfPieces: queue
-    })
-    return next
-  }
+  // getNextPiece = () => {
+  //   const next = this.prop.users.find(u => u._id === localStorage.userId).queue[0]
+  // }
 
   // swapHoldingPiece = () => {
-  //   const current = this.state.currentPiece
+  //   const current = this.user.currentPiece
   //   this.setState({
   //     currentPiece: this.state.holdingPiece,
   //     holdingPiece: current,
@@ -200,10 +195,10 @@ class Grid extends Component {
   // }
   //
   // hasNextRowEmpty = () => {
-  //   const rows = this.state.rows
+  //   const rows = this.user.rows
   //   let i = 0
-  //   for(i; i < rows[this.state.currentRow+this.state.currentPiece.length].length; i++){
-  //     if(rows[this.state.currentRow+this.state.currentPiece.length][i] > 0){
+  //   for(i; i < rows[this.state.currentRow+this.user.currentPiece.length].length; i++){
+  //     if(rows[this.state.currentRow+this.user.currentPiece.length][i] > 0){
   //       return false
   //     }
   //   }
@@ -211,19 +206,19 @@ class Grid extends Component {
   // }
 
   hasReachedBottom = () => {
-    // return this.state.currentRow + this.state.currentPiece.length >= this.state.rows.length
-    const point = this.state.referencePoint
-    const pieces = [...this.state.currentPiece, [0,0]]
+    // return this.state.currentRow + this.user.currentPiece.length >= this.user.rows.length
+    const point = this.user.referencePoint
+    const pieces = [...this.user.currentPiece, [0,0]]
     for(let i = 0; i < pieces.length; i++){
-      if(this.getTetrominoGridValue(point, pieces[i])[0] >= this.state.rows.length - 1){
+      if(this.getTetrominoGridValue(point, pieces[i])[0] >= this.user.rows.length - 1){
         return true
       }
     }
     return false
   }
   hasReachedLeftWall = () => {
-    const point = this.state.referencePoint
-    const pieces = [...this.state.currentPiece, [0,0]]
+    const point = this.user.referencePoint
+    const pieces = [...this.user.currentPiece, [0,0]]
     for(let i = 0; i < pieces.length; i++){
       if(this.getTetrominoGridValue(point, pieces[i])[1] <= 0){
         return true
@@ -232,10 +227,10 @@ class Grid extends Component {
     return false
   }
   hasReachedRightWall = () => {
-    const point = this.state.referencePoint
-    const pieces = [...this.state.currentPiece, [0,0]]
+    const point = this.user.referencePoint
+    const pieces = [...this.user.currentPiece, [0,0]]
     for(let i = 0; i < pieces.length; i++){
-      if(this.getTetrominoGridValue(point, pieces[i])[1] >= this.state.rows[0].length - 1){
+      if(this.getTetrominoGridValue(point, pieces[i])[1] >= this.user.rows[0].length - 1){
         return true
       }
     }
@@ -254,11 +249,11 @@ class Grid extends Component {
   // }
 
   hasPieceDirectlyBelow = () => {
-    const rows = this.state.rows
-    const temp = [...this.state.currentPiece, [0,0]]
+    const rows = this.user.rows
+    const temp = [...this.user.currentPiece, [0,0]]
 
     for(let i = 0; i < temp.length; i++){
-      if(!this.isIrrelevantPiece(temp[i], temp, 0) && this.hasCellDirectlyBelow(rows, this.getTetrominoGridValue(this.state.referencePoint, temp[i]))){
+      if(!this.isIrrelevantPiece(temp[i], temp, 0) && this.hasCellDirectlyBelow(this.user.rows, this.getTetrominoGridValue(this.user.referencePoint, temp[i]))){
         return true
       }
     }
@@ -280,11 +275,14 @@ class Grid extends Component {
   }
 
   hasCellDirectlyBelow = (rows, point) => {
-    return (point[0] < 0 || point[1] < 0 || point[0] > 19 || point[1] > 9) ? false :  rows[point[0] + 1][point[1]] > 0
+    if(this.user.rows && this.user.rows.length > 0)
+      return (point[0] < 0 || point[1] < 0 || point[0] > 19 || point[1] > 9) ? false :  rows[point[0] + 1][point[1]] > 0
+    else {
+      return false
+    }
   }
 
   hasCellDirectlyHorizontal = (rows, point, direction) => {
-
     return (point[0] < 0 || point[1] < 0 || point[0] > 19 || point[1] > 9) ? false : rows[point[0]][point[1] + direction] > 0
   }
 
@@ -295,20 +293,19 @@ class Grid extends Component {
   // }
 
   moveDown = () => {
+
     // if(this.props.playGame){ // check if the game is paused/started or not
       if(!this.isGameOver() && !this.hasReachedBottom() && !this.hasPieceDirectlyBelow()){
-        const point = this.state.referencePoint
-        let rows = this.removePiece(this.state.rows)
-        this.setState({
-          referencePoint: [point[0] + 1, point[1]]
-        })
-        this.placePiece(rows, 2)
+        const point = this.user.referencePoint
+        let rows = this.removePiece(this.user.rows)
+        let newPoint = [point[0] + 1, point[1]]
+        rows = this.placePiece(rows, newPoint, 2, true)
+
+
       } else if(this.isGameOver()) {
         console.log('game over!')
       } else {
         // TODO: check to see if row is completed
-
-
         this.resetTetrominoState()
       }
     }
@@ -320,63 +317,74 @@ class Grid extends Component {
 
   // sets a new piece as current piece and set the ref. point back to top
   resetTetrominoState = () => {
-    this.setState({
-      referencePoint: [0,5],
-      currentPiece: this.getNextPiece(),
-      rotationAngle: 3
-    })
+    // this.setState({
+    //   referencePoint: [0,5],
+    //   currentPiece: this.onGetNextPiece(this.user._id),
+    //   rotationAngle: 3
+    // })
+    this.props.socket.send(JSON.stringify({
+      subscription: this.roomId,
+      type: 'RESET_TETRO',
+      user: this.user._id,
+      payload: {
+        referencePoint: [-1,5],
+        rotationAngle: 2
+      }
+    }))
+    console.log('RESET TETRO STATE')
   }
 
   keyboardEvent = () => {
+    this.user = this.props.users.find(u => u._id === this.user._id)
     const that = this
     return document.addEventListener('keydown', (e) => {
 
       console.log(e.key)
-      if(this.props.user._id === localStorage.userId){
-      // if(that.props.playGame){
-        if (e.key === "ArrowLeft") {
-          if(that.canMoveHorizontally(-1)) {
-            let point = that.state.referencePoint
-            that.removePiece(that.state.rows)
-            that.setState({
-              referencePoint: [point[0], point[1] - 1],
-              currentColumn: that.state.currentColumn - 1,
-            })
-            that.placePiece(that.state.rows, 2)
-          }
-        } else if(e.key === "ArrowRight") {
-          if(that.canMoveHorizontally(1)) {
-            let point = that.state.referencePoint
-            that.removePiece(that.state.rows)
-            that.setState({
-              referencePoint: [point[0], point[1] + 1],
-            })
-            that.placePiece(that.state.rows, 2)
-          }
-        } else if(e.key === "ArrowUp") {
-          that.rotate()
+      if(this.props.user._id === this.user._id){
+        if(that.props.users.every(u => u.gameReady)){
+          if (e.key === "ArrowLeft") {
+            if(that.canMoveHorizontally(-1)) {
+              let point = that.state.referencePoint
+              that.removePiece(that.state.rows)
+              // that.setState({
+              //   referencePoint: ,
+              //   currentColumn: that.state.currentColumn - 1,
+              // })
+              that.placePiece(that.state.rows, [point[0], point[1] - 1], this.user.currentPiece.color, true)
+            }
+          } else if(e.key === "ArrowRight") {
+            if(that.canMoveHorizontally(1)) {
+              let point = that.state.referencePoint
+              that.removePiece(that.state.rows)
+              that.setState({
+                referencePoint: [point[0], point[1] + 1],
+              })
+              that.placePiece(that.state.rows, 2, true)
+            }
+          } else if(e.key === "ArrowUp") {
+            that.rotate()
 
-        } else if(e.key === "ArrowDown"){
-          console.log('move down')
-          that.moveDown()
-        } else if(e.key === " "){ // HARD DROP
-          const row = that.getBottomMostRow()
-          const rows = that.state.rows
-          that.removePiece(rows)
-          that.setState({
-            referencePoint: [row, that.state.referencePoint[1]]
-          })
-          that.placePiece(rows, 2)
+          } else if(e.key === "ArrowDown"){
+            console.log('move down')
+            that.moveDown()
+          } else if(e.key === " "){ // HARD DROP
+            const row = that.getBottomMostRow()
+            const rows = that.state.rows
+            that.removePiece(rows)
+            that.setState({
+              referencePoint: [row, that.state.referencePoint[1]]
+            })
+            that.placePiece(rows, 2, true)
+          }
         }
       }
-      // }
     })
   }
 
   getBottomMostRow = () => {
-    const rows = this.state.rows
-    const piece = this.state.currentPiece
-    const point = this.state.referencePoint
+    const rows = this.user.rows
+    const piece = this.user.currentPiece
+    const point = this.user.referencePoint
     let result = 20
     let counter = rows.length - 1
     let currentColumn
@@ -400,7 +408,7 @@ class Grid extends Component {
   }
 
   render() {
-    const rows = this.state.rows.map((r, i) => <GridRow key={i} id={i} row={this.state.rows[i]} />)
+    const rows = this.user.rows.map((r, i) => <GridRow key={i} id={i} row={this.user.rows[i]} />)
     return(
       <div className="grid-container">
         {rows}
@@ -409,4 +417,21 @@ class Grid extends Component {
   }
 }
 
-export default Grid
+
+function mapStateToProps(state){
+  return {
+    users: state.users.users
+  }
+}
+
+function mapDispatchToProps(dispatch){
+  return bindActionCreators({
+    setUpQueue: (tetrominoes, userId) => setUpQueue(tetrominoes, userId),
+    nextQueue: (userId) => nextQueue(userId),
+    setUpRows: (userId) => setUpRows(userId),
+    updateRows: (rows, ref, userId) => updateRows(rows, ref, userId)
+
+  }, dispatch)
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Grid)

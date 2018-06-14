@@ -70,16 +70,16 @@ class WaitingRoom extends Component {
     this.props.getAllUsers(this.roomId)
   }
 
-  componentWillUnmount() {
-    this.userSocket.send(JSON.stringify({
-      subscription: this.roomId,
-      type:'DISCONNECT',
-      user: localStorage.userId,
-      payload: {
-        roomId: this.roomId
-      }
-    }))
-  }
+  // componentWillUnmount() {
+  //   this.userSocket.send(JSON.stringify({
+  //     subscription: this.roomId,
+  //     type:'DISCONNECT',
+  //     user: localStorage.userId,
+  //     payload: {
+  //       roomId: this.roomId
+  //     }
+  //   }))
+  // }
 
   handleSocketInput = (data) => {
     switch(data.type) {

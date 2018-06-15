@@ -7,7 +7,6 @@ class GridRow extends Component {
   }
 
   componentDidMount() {
-    
   }
 
   render() {

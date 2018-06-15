@@ -37,7 +37,7 @@ class Grid extends Component {
   }
 
     placePiece = (rows, color) => {
-      let piece = this.state.currentPiece
+      let piece = this.state.currentPiece.blocks
       const coord = this.state.referencePoint
       if(!piece || piece.length < 1){
         piece = this.getNextPiece()
@@ -74,7 +74,7 @@ class Grid extends Component {
     }
 
    canMoveHorizontally = (direction) => {
-     const piece = [...this.state.currentPiece, [0,0]]
+     const piece = [...this.state.currentPiece.blocks, [0,0]]
      const rows = this.state.rows
      console.log(piece)
      for(let i = 0; i < piece.length; i++){
@@ -121,20 +121,19 @@ class Grid extends Component {
 
     rotate = () => {
       const rows = this.state.rows
-      const piece = this.state.currentPiece
+      const piece = this.state.currentPiece.blocks
       const rotated = piece.map((row) => this.state.rotationAngle > 1
         ? this.state.rotationAngle === 2
           ? [row[1] * -1, row[0]]
           : [row[1], row[0] * -1]
         : [row[1], row[0]])
       // TODO: check to see if rotating will pass wall boundaries
-
       this.removePiece(rows)
       this.setState({
-        currentPiece: rotated,
+        currentPiece: {blocks: [...rotated], color: this.state.currentPiece.color },
         rotationAngle: this.state.rotationAngle + 1 % 4
       })
-      this.placePiece(rows, 2)
+      this.placePiece(rows, this.state.currentPiece.color)
     };
 
     addNewPiece = () => {
@@ -220,7 +219,7 @@ class Grid extends Component {
     hasReachedBottom = () => {
       // return this.state.currentRow + this.state.currentPiece.length >= this.state.rows.length
       const point = this.state.referencePoint
-      const pieces = [...this.state.currentPiece, [0,0]]
+      const pieces = [...this.state.currentPiece.blocks, [0,0]]
       for(let i = 0; i < pieces.length; i++){
         if(this.getTetrominoGridValue(point, pieces[i])[0] >= this.state.rows.length - 1){
           return true
@@ -230,7 +229,7 @@ class Grid extends Component {
     }
     hasReachedLeftWall = () => {
       const point = this.state.referencePoint
-      const pieces = [...this.state.currentPiece, [0,0]]
+      const pieces = [...this.state.currentPiece.blocks, [0,0]]
       for(let i = 0; i < pieces.length; i++){
         if(this.getTetrominoGridValue(point, pieces[i])[1] <= 0){
           return true
@@ -240,7 +239,7 @@ class Grid extends Component {
     }
     hasReachedRightWall = () => {
       const point = this.state.referencePoint
-      const pieces = [...this.state.currentPiece, [0,0]]
+      const pieces = [...this.state.currentPiece.blocks, [0,0]]
       for(let i = 0; i < pieces.length; i++){
         if(this.getTetrominoGridValue(point, pieces[i])[1] >= this.state.rows[0].length - 1){
           return true
@@ -262,7 +261,7 @@ class Grid extends Component {
 
     hasPieceDirectlyBelow = () => {
       const rows = this.state.rows
-      const temp = [...this.state.currentPiece, [0,0]]
+      const temp = [...this.state.currentPiece.blocks, [0,0]]
 
       for(let i = 0; i < temp.length; i++){
         if(!this.isIrrelevantPiece(temp[i], temp, 0) && this.hasCellDirectlyBelow(rows, this.getTetrominoGridValue(this.state.referencePoint, temp[i]))){
@@ -309,7 +308,7 @@ class Grid extends Component {
           this.setState({
             referencePoint: [point[0] + 1, point[1]]
           })
-          this.placePiece(rows, 2)
+          this.placePiece(rows, this.state.currentPiece.color)
         } else if(this.isGameOver()) {
           console.log('game over!')
         } else {
@@ -348,7 +347,7 @@ class Grid extends Component {
                 referencePoint: [point[0], point[1] - 1],
                 currentColumn: that.state.currentColumn - 1,
               })
-              that.placePiece(that.state.rows, 2)
+              that.placePiece(that.state.rows, this.state.currentPiece.color)
             }
           } else if(e.key === "ArrowRight") {
             if(that.canMoveHorizontally(1)) {
@@ -357,7 +356,7 @@ class Grid extends Component {
               that.setState({
                 referencePoint: [point[0], point[1] + 1],
               })
-              that.placePiece(that.state.rows, 2)
+              that.placePiece(that.state.rows, this.state.currentPiece.color)
             }
           } else if(e.key === "ArrowUp") {
             that.rotate()
@@ -372,7 +371,7 @@ class Grid extends Component {
             that.setState({
               referencePoint: [row, that.state.referencePoint[1]]
             })
-            that.placePiece(rows, 2)
+            that.placePiece(rows, this.state.currentPiece.color)
           }
         // }
         that.props.socket.send(JSON.stringify({
@@ -386,7 +385,7 @@ class Grid extends Component {
 
     getBottomMostRow = () => {
       const rows = this.state.rows
-      const piece = this.state.currentPiece
+      const piece = this.state.currentPiece.blocks
       const point = this.state.referencePoint
       let result = 20
       let counter = rows.length - 1

@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import PlayerBoard from './PlayerBoard'
+import OtherPlayersBoard from './OtherPlayersBoard'
 
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
@@ -13,6 +14,7 @@ import updateConnection from '../../actions/updateConnection'
 import resetTetro from '../../actions/resetTetro'
 import getRoom from '../../actions/getRoom'
 import setUsers from '../../actions/setUsers'
+import setRows from '../../actions/setRows'
 
 class Game extends Component {
   constructor(props) {
@@ -39,7 +41,6 @@ class Game extends Component {
   }
 
   componentDidMount() {
-
     fetch('http://localhost:3000/api/v1/rooms/'+this.roomId)
       .then(r => r.json())
       .then(r => {
@@ -47,7 +48,6 @@ class Game extends Component {
       })
 
     this.socket.onmessage = function (event) {
-      console.log(event.data);
       const data = JSON.parse(event.data);
       that.handleSocketInput(data)
     }
@@ -55,6 +55,7 @@ class Game extends Component {
     if(!this.props.user) {
       this.props.getAllUsers(this.roomId)
     }
+
     const that = this
     this.socket.onopen = (callback) => {
       this.waitForConnection(() => {
@@ -68,10 +69,7 @@ class Game extends Component {
         }))
       }, 1000)
     }
-
-    // (e) => {
-
-    }
+  }
 
 
   waitForConnection = (callback, interval) => {
@@ -83,14 +81,11 @@ class Game extends Component {
         that.waitForConnection(callback, interval);
       }, interval)
     }
-
   }
 
   handleSocketInput = (data) => {
-    console.log('DATA',data)
     switch(data.type) {
       case 'UPDATE_CONNECTION':
-        console.log('on UPDATE_CONNECTION', data)
         this.setUpInit()
         break;
       case 'SETUP_QUEUE':
@@ -110,7 +105,11 @@ class Game extends Component {
       case 'RESET_TETRO':
         this.props.resetTetro(data.payload.referencePoint, data.payload.rotationAngle, data.user)
         break;
+      case 'SEND_ROWS':
+        this.props.setRows(data.payload, data.user)
+        break;
       case 'PLAY':
+        console.log('play is activated. setting canplay to true.')
         this.props.setUsers(data.payload.users, localStorage.userId)
         this.setState({
           canPlay: true
@@ -176,10 +175,18 @@ class Game extends Component {
   }
 
   render(){
-    const players = this.props.users.map(u => <PlayerBoard playGame={this.state.canPlay} roomId={this.roomId} tetrominoes={this.state.tetrominoes} socket={this.socket} key={u._id} user={u}/>)
+    const you = this.props.users.find(u => u._id === localStorage.userId)
+    const otherPlayers = this.props.users
+      ? this.props.users.filter(u => u._id !== localStorage.userId).map((u, i) => <OtherPlayersBoard key={i} user={u} />)
+      : null
+      console.log('rendering other users: ', this.props.users.filter(u => u._id !== localStorage.userId).map((u, i) => u))
+
     return(
       <div id="game-wrapper">
-         {this.state.canPlay ? players : null}
+         { this.state.canPlay
+           ? <PlayerBoard canPlay={this.state.canPlay} roomId={this.roomId} tetrominoes={this.state.tetrominoes} socket={this.socket} key={you._id} user={you} />
+           : <p>safdf</p> }
+         { this.state.canPlay ? otherPlayers : <p>other playsr slkdfj</p> }
       </div>
     )
   }
@@ -202,7 +209,8 @@ function mapDispatchToProps(dispatch){
     updateRows: (rows, ref, userId) => updateRows(rows, ref, userId),
     updateConnection: (userId) => updateConnection(userId),
     resetTetro: (refpoint, rotation, userId) => resetTetro(refpoint, rotation, userId),
-    setUsers: (users, id)=> setUsers(users, id)
+    setUsers: (users, id)=> setUsers(users, id),
+    setRows: (rows, user) => setRows(rows, user)
   }, dispatch)
 }
 

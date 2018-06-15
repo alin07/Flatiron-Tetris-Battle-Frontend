@@ -10,7 +10,8 @@ import { TOGGLE_READY,
          UPDATE_CURRENTPIECE,
          UPDATE_CONNECTION,
          RESET_TETRO,
-         SET_USERS
+         SET_USERS,
+         SET_ROWS
          } from '../actions/types'
 
 const initState = {
@@ -27,12 +28,7 @@ const users = (state = initState, action) => {
          isReady: false,
          queue: [],
          next: [],
-         rows: [],
-         currentPiece: [],
-         referencePoint: [-1,5],
-         holdPiece: [],
-         rotationAngle: 2,
-         gameReady: false
+         rows: []
        }))
       }
     case TOGGLE_READY:
@@ -40,12 +36,15 @@ const users = (state = initState, action) => {
       return updateUser(user, index, state)
     case SET_USERS:
       return {...state, users: action.payload.users }
+    case SET_ROWS:
+      user.rows = action.payload
+      return updateUser(user, index, state)
     case SETUP_QUEUE:
       user.queue = action.payload
       return updateUser(user, index, state)
-    case NEXT_QUEUE:
-      user.currentPiece = user.queue.shift()
-      return updateUser(user, index, state)
+    // case NEXT_QUEUE:
+    //   user.currentPiece = user.queue.shift()
+    //   return updateUser(user, index, state)
     case SETUP_ROWS:
       console.log('setting up rows for '+user+' desu.')
       user.rows = action.payload
@@ -54,26 +53,26 @@ const users = (state = initState, action) => {
       user.rows = action.payload.rows
       user.referencePoint = action.payload.referencePoint
       return updateUser(user, index, state)
-    case RESET_TETRO:
-      user.referencePoint = action.payload.referencePoint
-      user.rotationAngle = action.payload.rotationAngle
-      user.currentPiece = user.queue.shift()
-      return updateUser(user, index, state)
-    case UPDATE_REFPOINT:
-      user = user.find(u => u._id === action.userId)
-      user.referencePoint = action.payload
-      return updateUser(user, index, state)
+    // case RESET_TETRO:
+    //   user.referencePoint = action.payload.referencePoint
+    //   user.rotationAngle = action.payload.rotationAngle
+    //   user.currentPiece = user.queue.shift()
+    //   return updateUser(user, index, state)
+    // case UPDATE_REFPOINT:
+    //   user = user.find(u => u._id === action.userId)
+    //   user.referencePoint = action.payload
+    //   return updateUser(user, index, state)
     case UPDATE_HOLDPIECE:
       user = user.find(u => u._id === action.userId)
       user.referencePoint = action.payload
       return updateUser(user, index, state)
-    case UPDATE_ROTATIONANGLE:
-      user = user.find(u => u._id === action.userId)
-      user.referencePoint = action.payload
-      return updateUser(user, index, state)
-    case UPDATE_CURRENTPIECE:
-      user.referencePoint = action.payload
-      return updateUser(user, index, state)
+    // case UPDATE_ROTATIONANGLE:
+    //   user = user.find(u => u._id === action.userId)
+    //   user.referencePoint = action.payload
+    //   return updateUser(user, index, state)
+    // case UPDATE_CURRENTPIECE:
+    //   user.referencePoint = action.payload
+    //   return updateUser(user, index, state)
     case UPDATE_CONNECTION:
       user.gameReady = true
       return updateUser(user, index, state)

@@ -14,45 +14,61 @@ class Grid extends Component {
     this.user = this.props.users.find(u => u._id === localStorage.userId)
     this.hasReachedBottom = this.hasReachedBottom.bind(this)
     this.keyboardEvent = this.keyboardEvent.bind(this)
+    this.user = this.props.users.find(u => u._id === localStorage.userId)
   }
 
   componentDidMount() {
-      this.user = this.props.users.find(u => u._id === localStorage.userId)
-      this.onGetNextPiece(this.user._id)
-      this.updateBoard()
-      this.user = this.props.users.find(u => u._id === localStorage.userId)
-    }
+    this.onGetNextPiece(this.user._id)
+    this.updateBoard()
+  }
 
-    placePiece = (rows, point, color, update) => {
-      this.user = this.props.users.find(u => u._id === localStorage.userId)
-      let piece = this.user.currentPiece
-      const coord = point ? point : this.user.referencePoint
-      // this.onGetNextPiece(this.user._id)
-      if(!piece || piece.length < 1){
-        piece = this.props.users.find(u => u._id === localStorage.userId).next
-      }
-      if(coord[0] >= 0)
-        rows[coord[0]][coord[1]] = color
 
-      for(let i = 0; i < piece.length; i++){
-        if(this.canPlacePiece(coord, piece, i)) {
-          rows[coord[0] + piece[i][0]][coord[1] + piece[i][1]] = color
+
+  placePiece = (rows, point, color, update) => {
+    this.user = this.props.users.find(u => u._id === localStorage.userId)
+    if(!this.user.currentPiece && !this.user.next){
+      this.props.socket.send(JSON.stringify({
+        subscription: this.props.roomId,
+        type:'SETUP_QUEUE',
+        user: this.user._id,
+        payload: {
+          _id: this.user._id,
+          tetrominoes: this.props.tetrominoes
         }
+      }))
+    }
+    let piece = this.user.currentPiece
+    const coord = point ? point : this.user.referencePoint
+    // this.onGetNextPiece(this.user._id)
+    if(!piece || piece.length < 1){
+      piece = this.props.users.find(u => u._id === localStorage.userId).next
+    }
+    if(coord[0] >= 0)
+      rows[coord[0]][coord[1]] = color
+
+    for(let i = 0; i < piece.length; i++){
+      if(this.canPlacePiece(coord, piece, i)) {
+        rows[coord[0] + piece[i][0]][coord[1] + piece[i][1]] = color
       }
-      if(update){
-        const that = this
-        this.props.socket.send(JSON.stringify({
-          subscription: that.roomId,
-          type: 'UPDATE_ROWS',
-          user: this.user._id,
-          payload: {
-            rows: rows,
-            referencePoint: coord
-          }
-        }))
-      }
+    }
+    if(update){
+      console.log('UPDATING TO:', rows)
+      const that = this
+      this.props.socket.send(JSON.stringify({
+        subscription: that.roomId,
+        type: 'UPDATE_ROWS',
+        user: this.user._id,
+        payload: {
+          rows: rows,
+          referencePoint: coord
+        }
+      }))
+    }
     return rows
   }
+
+
+
 
   canPlacePiece(coord, piece, i){
     return coord[0] + piece[i][0] > -1 && coord[1] + piece[i][1] >= 0 && coord[1] + piece[i][1] < 10
@@ -177,6 +193,7 @@ class Grid extends Component {
         user: this.props.users.find(u => u._id === this.user._id)
       }
     }))
+    return this.props.user.next
     // // this.setState({
     // //   props.queue: queue
     // // })
@@ -208,6 +225,7 @@ class Grid extends Component {
   hasReachedBottom = () => {
     // return this.state.currentRow + this.user.currentPiece.length >= this.user.rows.length
     const point = this.user.referencePoint
+    console.log('USER PIECE IN HAS REACHED BOTTOM', this.user)
     const pieces = [...this.user.currentPiece, [0,0]]
     for(let i = 0; i < pieces.length; i++){
       if(this.getTetrominoGridValue(point, pieces[i])[0] >= this.user.rows.length - 1){
@@ -301,7 +319,6 @@ class Grid extends Component {
         let newPoint = [point[0] + 1, point[1]]
         rows = this.placePiece(rows, newPoint, 2, true)
 
-
       } else if(this.isGameOver()) {
         console.log('game over!')
       } else {
@@ -323,7 +340,7 @@ class Grid extends Component {
     //   rotationAngle: 3
     // })
     this.props.socket.send(JSON.stringify({
-      subscription: this.roomId,
+      subscription: this.props.roomId,
       type: 'RESET_TETRO',
       user: this.user._id,
       payload: {

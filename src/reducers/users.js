@@ -9,7 +9,8 @@ import { TOGGLE_READY,
          UPDATE_ROTATIONANGLE,
          UPDATE_CURRENTPIECE,
          UPDATE_CONNECTION,
-         RESET_TETRO
+         RESET_TETRO,
+         SET_USERS
          } from '../actions/types'
 
 const initState = {
@@ -35,10 +36,10 @@ const users = (state = initState, action) => {
        }))
       }
     case TOGGLE_READY:
-      // user = state.users.find(u => u._id === action.user)
-      // index = state.users.map(u => u._id).indexOf(action.user)
       user.isReady = action.payload.toggle
       return updateUser(user, index, state)
+    case SET_USERS:
+      return {...state, users: action.payload.users }
     case SETUP_QUEUE:
       user.queue = action.payload
       return updateUser(user, index, state)

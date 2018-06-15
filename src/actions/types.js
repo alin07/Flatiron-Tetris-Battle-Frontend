@@ -24,6 +24,7 @@ export const UPDATE_CURRENTPIECE = 'update_currentpiece'
 export const PLACE_PIECE = 'place_piece'
 export const UPDATE_CONNECTION = 'update_connection'
 export const RESET_TETRO = 'reset_tetro'
+export const SET_USERS = 'set_users'
 
 
 

@@ -19,7 +19,8 @@ class Grid extends Component {
       referencePoint: [0,5],
       holdPiece:[],
       queueOfPieces: [],
-      rotationAngle: 3
+      rotationAngle: 3,
+      speed: 1000
     }
     this.hasReachedBottom = this.hasReachedBottom.bind(this)
     this.keyboardEvent = this.keyboardEvent.bind(this)
@@ -97,13 +98,8 @@ class Grid extends Component {
       setInterval(()=>{
         // if(this.props.playGame)
           that.moveDown()
-          that.props.socket.send(JSON.stringify({
-            subscription: that.props.roomId,
-            type:'SEND_ROWS',
-            user: that.user._id,
-            payload: that.state.rows
-          }))
-      }, 1000)
+
+      }, this.state.speed)
     }
 
     setUpGrid = () => {
@@ -286,7 +282,8 @@ class Grid extends Component {
     }
 
     hasCellDirectlyBelow = (rows, point) => {
-      return (point[0] < 0 || point[1] < 0 || point[0] > 19 || point[1] > 9) ? false :  rows[point[0] + 1][point[1]] > 0
+      console.log(point, " into ", point[0] + 1,", ", point[1])
+      return (point[0] < 0 || point[1] < 0 || point[0] >= 19 || point[1] > 9) ? false :  rows[point[0] + 1][point[1]] > 0
     }
 
     hasCellDirectlyHorizontal = (rows, point, direction) => {
@@ -302,26 +299,79 @@ class Grid extends Component {
 
     moveDown = () => {
       // if(this.props.playGame){ // check if the game is paused/started or not
-        if(!this.isGameOver() && !this.hasReachedBottom() && !this.hasPieceDirectlyBelow()){
-          const point = this.state.referencePoint
-          let rows = this.removePiece(this.state.rows)
-          this.setState({
-            referencePoint: [point[0] + 1, point[1]]
-          })
-          this.placePiece(rows, this.state.currentPiece.color)
+        if(!this.isGameOver()){
+          if(!this.hasReachedBottom() && !this.hasPieceDirectlyBelow()){
+            this.placePieceDown()
+          } else{
+            this.startNewPiece()
+          }
+
         } else if(this.isGameOver()) {
+          this.props.socket.send(JSON.stringify({
+            subscription: this.props.roomId,
+            type:'GAME_OVER',
+            user: this.user._id,
+            payload: this.state.rows
+          }))
           console.log('game over!')
         } else {
-          // TODO: check to see if row is completed
-
-
-          this.resetTetrominoState()
+          this.startNewPiece()
         // }
       }
+      this.props.socket.send(JSON.stringify({
+        subscription: this.props.roomId,
+        type:'SEND_ROWS',
+        user: this.user._id,
+        payload: this.state.rows
+      }))
     }
 
-    isRowCompleted = () => {
+    placePieceDown = () => {
+      const point = this.state.referencePoint
+      let rows = this.removePiece(this.state.rows)
+      this.setState({
+        referencePoint: [point[0] + 1, point[1]]
+      })
+      this.placePiece(rows, this.state.currentPiece.color)
+    }
 
+    startNewPiece = () => {
+      this.completeRows()
+      this.resetTetrominoState()
+    }
+
+    completeRows = () => {
+      let rows = [...this.state.rows]
+      let result = []
+      for(let i = rows.length - 1; i >= 0; i--){
+        if(this.isRowCompleted(rows[i])){
+          result.push(i)
+        }
+      }
+
+      this.completedRowAnimation(rows, result)
+    }
+
+    completedRowAnimation = (rows, result) => {
+      for(let i = 0; i < result.length; i++){
+        // delete rows[result[i]]
+        rows = this.deleteRow(rows, result[i])
+        rows.unshift([0,0,0,0,0,0,0,0,0,0])
+      }
+      this.setState({
+        rows: rows
+      })
+    }
+
+    deleteRow = (rows, row) => {
+      let result = rows.slice(0)
+
+      result.splice(row, 1)
+      return result
+    }
+
+    isRowCompleted = (row) => {
+      return row.every(r => r > 0)
     }
 
     // sets a new piece as current piece and set the ref. point back to top
@@ -360,18 +410,22 @@ class Grid extends Component {
             }
           } else if(e.key === "ArrowUp") {
             that.rotate()
-
           } else if(e.key === "ArrowDown"){
             console.log('move down')
             that.moveDown()
           } else if(e.key === " "){ // HARD DROP
-            const row = that.getBottomMostRow()
-            const rows = that.state.rows
-            that.removePiece(rows)
-            that.setState({
-              referencePoint: [row, that.state.referencePoint[1]]
-            })
-            that.placePiece(rows, this.state.currentPiece.color)
+            // const row = that.getBottomMostRow()
+
+            // while(!this.hasReachedBottom() || !this.hasPieceDirectlyBelow()){
+            //   debugger
+            //   this.placePieceDown()
+            // }
+            // const rows = that.state.rows
+            // that.removePiece(rows)
+            // that.setState({
+            //   referencePoint: [row, that.state.referencePoint[1]]
+            // })
+            // that.placePiece(rows, this.state.currentPiece.color)
           }
         // }
         that.props.socket.send(JSON.stringify({
@@ -383,31 +437,7 @@ class Grid extends Component {
       })
     }
 
-    getBottomMostRow = () => {
-      const rows = this.state.rows
-      const piece = this.state.currentPiece.blocks
-      const point = this.state.referencePoint
-      let result = 20
-      let counter = rows.length - 1
-      let currentColumn
-      let offset = 0
 
-      for(let i = 0; i < piece.length; i++){
-        currentColumn = point[1] + piece[i][1]
-        counter = rows.length - 1
-        while(rows[counter][currentColumn] > 0){
-          counter --;
-        }
-        if(result >= counter) {
-          if(offset < piece[i][0]){
-            offset = piece[i][0]
-          }
-          result = counter
-        }
-
-      }
-      return result - offset
-    }
 
     render() {
       const rows = this.state.rows.map((r, i) => <GridRow key={i} id={i} row={this.state.rows[i]} />)

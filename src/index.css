@@ -19,6 +19,10 @@ body {
   font-family: sans-serif;
 }
 
+.player-self {
+  color: tomato;
+}
+
 .grid-item{
   border: 1px solid black;
 }
@@ -64,7 +68,7 @@ body {
   background-color: tomato;
 }
 .yellow {
-  background-color: yellow;
+  background-color: #ADFF2F;
 }
 .orange {
   background-color: orange;
@@ -78,6 +82,7 @@ body {
 .pink {
   background-color: pink;
 }
+
 
 /*
 .row {

@@ -109,7 +109,6 @@ class Game extends Component {
         this.props.setRows(data.payload, data.user)
         break;
       case 'PLAY':
-        console.log('play is activated. setting canplay to true.')
         this.props.setUsers(data.payload.users, localStorage.userId)
         this.setState({
           canPlay: true
@@ -143,7 +142,7 @@ class Game extends Component {
     } else if(!this.state.canPlay){
       // wait for everyone
       // while(!this.state.canPlay || this.room){
-        window.setTimeout(() => {console.log('waiting...'); this.setUpInit();}, 1000);
+        window.setTimeout(() => {this.setUpInit();}, 1000);
       // }
 
     }
@@ -179,14 +178,13 @@ class Game extends Component {
     const otherPlayers = this.props.users
       ? this.props.users.filter(u => u._id !== localStorage.userId).map((u, i) => <OtherPlayersBoard key={i} user={u} />)
       : null
-      console.log('rendering other users: ', this.props.users.filter(u => u._id !== localStorage.userId).map((u, i) => u))
 
     return(
       <div id="game-wrapper">
          { this.state.canPlay
            ? <PlayerBoard canPlay={this.state.canPlay} roomId={this.roomId} tetrominoes={this.state.tetrominoes} socket={this.socket} key={you._id} user={you} />
-           : <p>safdf</p> }
-         { this.state.canPlay ? otherPlayers : <p>other playsr slkdfj</p> }
+         : <h1>LOADING...</h1> }
+         { this.state.canPlay ? otherPlayers : null}
       </div>
     )
   }

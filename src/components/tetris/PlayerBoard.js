@@ -13,7 +13,7 @@ class PlayerBoard extends Component {
   render(){
     return(
       <div className="inline">
-        <h1>{this.props.user.username}</h1>
+        <h1 className="player-self">{this.props.user.username}</h1>
         <Grid roomId={this.props.roomId} canPlay={this.props.canPlay} socket={this.props.socket} tetrominoes={this.props.tetrominoes} user={this.props.user} />
       </div>
     )

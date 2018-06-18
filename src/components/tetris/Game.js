@@ -38,6 +38,8 @@ class Game extends Component {
     }
     this.room = null
     this.handleSocketInput = this.handleSocketInput.bind(this)
+
+    // this.child = React.createRef();
   }
 
   componentDidMount() {
@@ -114,6 +116,11 @@ class Game extends Component {
           canPlay: true
         })
         break;
+      case 'SEND_GARBAGE_TILES':
+         this.child.child.getWrappedInstance().addGarbageTiles(data.user, data.payload.rows)
+        break;
+      case 'GAME_OVER':
+        break;
       default:
         console.log(data.type, " is not supported")
     }
@@ -182,7 +189,7 @@ class Game extends Component {
     return(
       <div id="game-wrapper">
          { this.state.canPlay
-           ? <PlayerBoard canPlay={this.state.canPlay} roomId={this.roomId} tetrominoes={this.state.tetrominoes} socket={this.socket} key={you._id} user={you} />
+           ? <PlayerBoard ref={ref => { this.child = ref }} canPlay={this.state.canPlay} roomId={this.roomId} tetrominoes={this.state.tetrominoes} socket={this.socket} key={you._id} user={you} />
          : <h1>LOADING...</h1> }
          { this.state.canPlay ? otherPlayers : null}
       </div>

@@ -63,26 +63,46 @@ body {
 }
 .dodgerblue {
   background-color: dodgerblue;
+  border: 1px dodgerblue solid;
 }
 .tomato {
   background-color: tomato;
+  border: 1px tomato solid;
 }
 .yellow {
   background-color: #ADFF2F;
+  border: 1px #ADFF2F solid;
 }
 .orange {
   background-color: orange;
+  border: 1px orange solid;
 }
 .mediumseagreen {
   background-color: mediumseagreen;
+  border: 1px mediumseagreen solid;
 }
 .slateblue {
   background-color: slateblue;
+  border: 1px slateblue solid;
 }
 .pink {
   background-color: pink;
+  border: 1px pink solid;
+}
+.garbage {
+  background-color: gray;
+  border: 1px white solid;
 }
 
+.blink_me {
+  /* animation: blinker 0.5s linear .5s; */
+}
+
+@keyframes blinker {
+  /* 50% {
+    opacity: 0;
+  } */
+}
 
 /*
 .row {

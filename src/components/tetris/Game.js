@@ -22,8 +22,6 @@ class Game extends Component {
     const currentUrl = this.props.history.location.pathname
     this.socket = new WebSocket("ws://localhost:3000")
     this.roomId = currentUrl.substring(currentUrl.indexOf('/', 2)+1)
-
-
     this.state = {
       tetrominoes: {
         o: { blocks: [[-1, 0],[0,-1],[-1,-1]], color:1 },
@@ -34,12 +32,21 @@ class Game extends Component {
         j: { blocks: [[0,-1],[-1,0],[-2,0]], color:6 },
         t: { blocks: [[-1,0],[0,-1],[0,1]], color:7 }
       },
-      canPlay: false
+      userHoldNext: {
+        you: {
+          next: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
+          hold: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
+        },
+        opponent: {
+          next: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
+          hold: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
+        }
+      },
+      canPlay: false,
+      gameOver: false
     }
     this.room = null
     this.handleSocketInput = this.handleSocketInput.bind(this)
-
-    // this.child = React.createRef();
   }
 
   componentDidMount() {
@@ -57,7 +64,6 @@ class Game extends Component {
     if(!this.props.user) {
       this.props.getAllUsers(this.roomId)
     }
-
     const that = this
     this.socket.onopen = (callback) => {
       this.waitForConnection(() => {
@@ -120,6 +126,42 @@ class Game extends Component {
          this.child.child.getWrappedInstance().addGarbageTiles(data.user, data.payload.rows)
         break;
       case 'GAME_OVER':
+        this.setState({
+          gameOver: true
+        })
+        this.child.child.getWrappedInstance().gameOver()
+        const condition = localStorage.userId === data.user ? "lose!" : "win!"
+        alert("Game Over! You " + condition)
+        break;
+      case 'RESTART_GAME':
+        this.setState({
+          gameOver: false
+        })
+        this.child.child.getWrappedInstance.restartGame()
+        break;
+      case 'NEXT_HOLD_PIECES':
+        if(data.user === localStorage.userId){
+          this.setState({
+            userHoldNext: {
+              opponent: {...this.state.userHoldNext.opponent},
+              you: {
+                next: data.payload.next,
+                hold: data.payload.hold
+              },
+            }
+          })
+        } else{
+          this.setState({
+            userHoldNext: {
+              you:{...this.state.userHoldNext.you},
+              opponent: {
+                next: data.payload.next,
+                hold: data.payload.hold
+              }
+            }
+          })
+        }
+
         break;
       default:
         console.log(data.type, " is not supported")
@@ -181,16 +223,20 @@ class Game extends Component {
   }
 
   render(){
+    const isSpectator = !localStorage.userId || (localStorage.userId && this.props.users.filter(u => u._id === localStorage.userId).length < 1)
     const you = this.props.users.find(u => u._id === localStorage.userId)
-    const otherPlayers = this.props.users
-      ? this.props.users.filter(u => u._id !== localStorage.userId).map((u, i) => <OtherPlayersBoard key={i} user={u} />)
-      : null
-
-    return(
+    const otherPlayers = !isSpectator
+      ? this.props.users.filter(u => u._id !== localStorage.userId).map((u, i) => <OtherPlayersBoard key={i} user={u} hold={this.state.userHoldNext.opponent.hold} next={this.state.userHoldNext.opponent.next} />)
+      : this.props.users.map((u, i) => <OtherPlayersBoard key={i} user={u} hold={this.state.userHoldNext.opponent.hold} next={this.state.userHoldNext.opponent.next} />)
+    return (
       <div id="game-wrapper">
-         { this.state.canPlay
-           ? <PlayerBoard ref={ref => { this.child = ref }} canPlay={this.state.canPlay} roomId={this.roomId} tetrominoes={this.state.tetrominoes} socket={this.socket} key={you._id} user={you} />
-         : <h1>LOADING...</h1> }
+         {
+           isSpectator
+           ? null
+           : this.state.canPlay
+             ? <PlayerBoard ref={ref => { this.child = ref }} holdRows={this.state.userHoldNext.you.hold} nextRows={this.state.userHoldNext.you.next} canPlay={this.state.canPlay} roomId={this.roomId} tetrominoes={this.state.tetrominoes} socket={this.socket} key={you._id} user={you} />
+             : <h1>WAITING FOR OTHER PLAYERS...</h1>
+        }
          { this.state.canPlay ? otherPlayers : null}
       </div>
     )

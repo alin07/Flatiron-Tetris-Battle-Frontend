@@ -10,7 +10,6 @@ class GridRow extends Component {
   }
 
   isFull = () => {
-    debugger
     return this.props.row.every(r => r > 0)
   }
 

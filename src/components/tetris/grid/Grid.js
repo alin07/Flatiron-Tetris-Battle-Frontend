@@ -34,18 +34,26 @@ class Grid extends Component {
   }
 
   componentDidMount() {
+    this. init()
+    this.updateBoard()
+    this.event = this.keyboardEvent()
+
+    this.props.socket.send(JSON.stringify({
+      subscription: this.props.roomId,
+      type:'NEXT_HOLD_PIECES',
+      user: this.user._id,
+      payload: {
+        next: this.state.queueOfPieces.length > 0 ? this.state.queueOfPieces[0] : [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
+        hold: this.state.holdPiece
+      }
+    }))
+  }
+  init = () => {
     this.setUpQueue()
     this.setState({
       currentPiece: this.getNextPiece()
     })
-    const result = this.setUpGrid()
-    this.updateBoard()
-    this.event = this.keyboardEvent()
-    // this.props.onRef(this)
-  }
-
-  componentWillUnmount(){
-    // this.props.onRef(undefined)
+    this.setUpGrid()
   }
 
   placePiece = (rows, color) => {
@@ -66,6 +74,8 @@ class Grid extends Component {
     })
     return rows
   }
+
+
 
   canPlacePiece(coord, piece, i){
     return coord[0] + piece[i][0] > -1 && coord[1] + piece[i][1] >= 0 && coord[1] + piece[i][1] < 10
@@ -200,17 +210,46 @@ class Grid extends Component {
     this.setState({
       queueOfPieces: queue
     })
+    this.props.socket.send(JSON.stringify({
+      subscription: this.props.roomId,
+      type:'NEXT_HOLD_PIECES',
+      user: this.user._id,
+      payload: {
+        next: this.state.queueOfPieces.length > 0 ? queue[0] : [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
+        hold: this.state.holdPiece
+      }
+    }))
+
     return next
   }
 
-  // swapHoldingPiece = () => {
-  //   const current = this.state.currentPiece
-  //   this.setState({
-  //     currentPiece: this.state.holdingPiece,
-  //     holdingPiece: current,
-  //   })
-  // }
-  //
+  swapHoldingPiece = () => {
+    const current = this.state.currentPiece
+    if(this.state.currentPiece || this.state.currentPiece.length < 1){
+      this.setState({
+        currentPiece: this.state.holdPiece,
+        holdPiece: current,
+      })
+    }
+    else{
+
+      this.setState({
+        currentPiece: this.state.holdPiece,
+        holdPiece: current,
+      })
+    }
+
+    this.props.socket.send(JSON.stringify({
+      subscription: this.props.roomId,
+      type:'NEXT_HOLD_PIECES',
+      user: this.user._id,
+      payload: {
+        next: this.state.queueOfPieces.length > 0 ? this.state.queueOfPieces[0] : [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
+        hold: current
+      }
+    }))
+  }
+
   // hasNextRowEmpty = () => {
   //   const rows = this.state.rows
   //   let i = 0
@@ -296,15 +335,9 @@ class Grid extends Component {
   }
 
   hasCellDirectlyHorizontal = (rows, point, direction) => {
-
-    return (point[0] < 0 || point[1] < 0 || point[0] > 19 || point[1] > 9) ? false : rows[point[0]][point[1] + direction] > 0
+    const gridPoint = this.getTetrominoGridValue(this.state.referencePoint, point)
+    return (gridPoint[0] < 0 || gridPoint[1] + direction < 0 || gridPoint[0] > 19 || gridPoint[1] + direction > 9) ? false : rows[gridPoint[0]][gridPoint[1] + direction] > 0
   }
-
-  // deleteRow = (arr, row) => {
-  //    arr = arr.slice(0)
-  //    arr.splice(row, 1)
-  //    return arr
-  // }
 
   moveDown = () => {
      if(!this.state.disableAll){ // check if the game is paused/started or not
@@ -315,6 +348,7 @@ class Grid extends Component {
           this.startNewPiece()
         }
       } else if(this.isGameOver()) {
+
         this.props.socket.send(JSON.stringify({
           subscription: this.props.roomId,
           type:'GAME_OVER',
@@ -407,7 +441,11 @@ class Grid extends Component {
     }
   }
 
-  
+  gameOver = () => {
+    this.setState({
+      disableAll: true
+    })
+  }
 
   completedRowAnimation = (rows, animation, result) => {
     setTimeout(()=>{console.log("doop")}, 800)
@@ -442,14 +480,12 @@ class Grid extends Component {
 
   deleteRow = (rows, row) => {
     let result = rows.slice(0)
-
     result.splice(row, 1)
     return result
   }
 
   isRowCompleted = (row) => {
     console.log(row)
-
     return row < 0 ? false : this.state.rows[row].every(r => r > 0)
   }
 

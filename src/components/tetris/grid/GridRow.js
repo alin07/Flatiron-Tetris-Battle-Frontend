@@ -7,13 +7,6 @@ class GridRow extends Component {
   }
 
   componentDidMount() {
-<<<<<<< HEAD
-
-  }
-
-  render() {
-    const cells = this.props.row.map((c,i) => <GridCell key={i} value={c}/>)
-=======
   }
 
   isFull = () => {
@@ -22,7 +15,6 @@ class GridRow extends Component {
 
   render() {
     const cells = this.props.row.map((c,i) => <GridCell key={i} value={c} isFull={this.isFull} />)
->>>>>>> newRow
     return(
       <div className={"grid-template-rows " }>
         { cells }

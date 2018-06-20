@@ -4,6 +4,7 @@ import { List, Image, Checkbox, Button } from 'semantic-ui-react'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
 import toggleReady from '../../actions/toggleReady'
+import setUpQueue from '../../actions/setUpQueue'
 
 
 class User extends Component {
@@ -13,10 +14,6 @@ class User extends Component {
   }
 
   componentDidMount() {
-  }
-
-  toggleReady = (e) => {
-    this.props.toggleReady.bind(this)()
   }
 
   onToggleReady = () => {
@@ -30,16 +27,25 @@ class User extends Component {
         userId: localStorage.userId
       }
     }))
+
   }
 
-  // areAllUsersReady = () => {
-  //   console.log(this.props.users)
-  //   debugger
-  //   this.props.users.every(u => u._id === this.props.hostId || u.isReady)
-  // }
+
+  onStartGame = () => {
+    console.log('on ')
+    this.props.socket.send(JSON.stringify({
+      subscription: this.props.roomId,
+      type:'START_GAME',
+      user: localStorage.userId,
+      payload: {
+        roomId: this.props.roomId
+      }
+    }))
+  }
+
 
   render() {
-
+    const ready = this.props.users.every(u => u.isReady || u._id === this.props.hostId ) && this.props.hostId === localStorage.userId
     const readyCheckBox = (
       <div>
         Ready?
@@ -55,7 +61,7 @@ class User extends Component {
       <List.Item>
         <List.Content floated='right'>
         { this.props.hostId === this.props.user._id
-          ? <Button onClick={this.props.onStartGame} disabled={ !isAllReady || this.props.hostId !== localStorage.userId }>Start Game</Button>
+          ? <Button onClick={this.onStartGame.bind(this)} disabled={ !ready }>Start Game</Button>
           : readyCheckBox
         }
         </List.Content>

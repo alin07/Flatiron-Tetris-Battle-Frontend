@@ -42,7 +42,8 @@ class WaitingRoom extends Component {
     )
 
     const that = this
-    this.userSocket.onopen = (e) => this.userSocket.send(JSON.stringify({
+    this.userSocket.onopen = (e) => {
+      this.userSocket.send(JSON.stringify({
       subscription: this.roomId,
       type: 'CONNECTION',
       user: localStorage.userId,
@@ -52,11 +53,12 @@ class WaitingRoom extends Component {
         isReady: false
       }
     }))
+  }
 
     this.userSocket.onClose = () => {
       this.userSocket.send(JSON.stringify({
         subscription: this.roomId,
-        type: 'DISCONNECTION',
+        type: 'DISCONNECT',
         user: localStorage.userId,
         payload: {
           _id: localStorage.userId
@@ -73,16 +75,16 @@ class WaitingRoom extends Component {
 
   }
 
-  componentWillUnmount() {
-    this.userSocket.send(JSON.stringify({
-      subscription: this.roomId,
-      type:'DISCONNECT',
-      user: localStorage.userId,
-      payload: {
-        roomId: this.roomId
-      }
-    }))
-  }
+  // componentWillUnmount() {
+  //   this.userSocket.send(JSON.stringify({
+  //     subscription: this.roomId,
+  //     type:'DISCONNECT',
+  //     user: localStorage.userId,
+  //     payload: {
+  //       roomId: this.roomId
+  //     }
+  //   }))
+  // }
 
   handleSocketInput = (data) => {
     switch(data.type) {
@@ -98,14 +100,15 @@ class WaitingRoom extends Component {
           break
       case 'LEAVE':
         this.leaveRoom(data.payload.roomId, data.payload.userId)
+        this.props.getAllUsers(this.roomId)
         break
       case 'TOGGLE_READY':
         console.log('doop doop')
         this.toggleReady(data.payload.userId, data.payload.toggle)
         break
-      case 'START':
-        this.startGame()
-        break
+      case 'START_GAME':
+        this.props.history.push('/g/'+data.payload.roomId)
+        break;
       default:
         console.log(data, " is not supported")
     }
@@ -114,6 +117,7 @@ class WaitingRoom extends Component {
   disbandRoom = (userId) => {
     this.props.disbandRoom(this.roomId)
     console.log('alert everyone this room is disbanding')
+
     this.props.history.push('/')
   }
 
@@ -142,26 +146,9 @@ class WaitingRoom extends Component {
 
   leaveRoom = (roomId, userId) => {
     this.props.leaveRoom(roomId, userId)
-
     if(userId === localStorage.userId){
       this.props.history.push('/')
     }
-    else{
-      this.props.getAllUsers(roomId)
-    }
-    // let home page know
-    this.userSocket.send(JSON.stringify({
-      subscription: 'room',
-      type:'LEAVE',
-      user: localStorage.userId,
-      payload: {
-        roomId: this.roomId,
-        userId: localStorage.userId
-      }
-    }))
-  }
-  componentWillUnmount() {
-    this.userSocket.close()
   }
 
   toggleReady = (user, toggle) => {
@@ -195,7 +182,7 @@ class WaitingRoom extends Component {
           ? <Button onClick={this.onDisbandRoom}>Disband Room</Button>
           : <Button onClick={this.onLeaveRoom}>Leave Room</Button>
         }
-        <UsersContainer hostId={this.state.room.host} onStartGame={this.onStartGame} toggleReady={this.toggleReady} socket={this.userSocket} users={this.props.users.users} roomId={this.roomId} />
+        <UsersContainer {...this.props} hostId={this.state.room.host} toggleReady={this.toggleReady} socket={this.userSocket} users={this.props.users.users} roomId={this.roomId} />
       </div>
     )
   }

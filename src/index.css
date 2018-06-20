@@ -13,45 +13,66 @@
   margin-top: 3em;
 }
 
-#game-wrapper {
-  display: flex;
-  overflow:auto;
-  /* display:table; */
-
-}
-.inline{
-  width: 300px;
-  display: inline-block;
-  float:left;
-  padding:0 auto;
-  margin: 0 auto;
-  box-sizing:border-box;
-}
-
 body {
   margin: 0;
   padding: 0;
   font-family: sans-serif;
 }
 
+.player-self {
+  color: tomato;
+}
+
+.grid-item{
+  border: 1px solid #494949;
+}
 
 .grid-template-rows {
   display: flex;
 }
 
 .grid-item {
-  border: 1px solid black;
   padding: 11px;
   color: white;
   line-height: 1;
-
+  display: inline-block;
 }
 
-.row {
-
+.game-wrapper {
+  display:flex;
+  margin: 0 auto;
+  width: 100%;
 }
+
+.inline {
+  text-align:center;
+  float:left;
+  overflow:hidden;
+  margin: 1rem;
+}
+
 .hidden {
   visibility:hidden
+}
+
+ul {
+   list-style-type: none;
+}
+
+li {
+  margin-left: 3em;
+  text-align:center;
+}
+
+.instructions {
+  text-align:center;
+}
+
+.instructions-container {
+  margin: 2em 2em;
+  display:inline-block;
+  float:right;
+  text-align:center;
 }
 
 /* ['white', 'dodger-blue', 'tomato', 'yellow', 'orange', 'mediumseagreen', 'slate-blue']
@@ -61,24 +82,45 @@ body {
 }
 .dodgerblue {
   background-color: dodgerblue;
+/* border: 1px dodgerblue solid; */
 }
 .tomato {
   background-color: tomato;
+/* border: 1px tomato solid; */
 }
 .yellow {
-  background-color: yellow;
+  background-color: #ADFF2F;
+/* border: 1px #ADFF2F solid; */
 }
 .orange {
   background-color: orange;
+/* border: 1px orange solid; */
 }
 .mediumseagreen {
   background-color: mediumseagreen;
+/* border: 1px mediumseagreen solid; */
 }
 .slateblue {
   background-color: slateblue;
+/* border: 1px slateblue solid; */
 }
 .pink {
   background-color: pink;
+  /* border: 1px pink solid; */
+}
+.garbage {
+  background-color: gray;
+  /* border: 1px white solid; */
+}
+
+.blink_me {
+  /* animation: blinker 0.5s linear .5s; */
+}
+
+@keyframes blinker {
+  /* 50% {
+    opacity: 0;
+  } */
 }
 
 /*

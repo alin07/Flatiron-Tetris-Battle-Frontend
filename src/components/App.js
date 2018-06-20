@@ -16,6 +16,7 @@ class App extends Component {
           <div>
             <Route exact path="/" component={ Home } { ...this.props } />
             <Route path="/r/:id" render={ (props) => <WaitingRoom {...props} />} />
+            <Route path="/g/:id" render={ (props) => <Game {...props} /> } />
             <Route path="/login" render={ (props) => <UserForm {...props} task="Login" otherTask={"Register"}/> } />
             <Route path="/register" render={ (props) => <UserForm {...props} task="Register" otherTask={"Login"}/> } />
             <Route path="/g/:id" render={ (props) => <Game {...props} /> } />

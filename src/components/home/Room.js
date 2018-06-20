@@ -11,7 +11,6 @@ import getAllUsers from '../../actions/getAllUsers'
 
 class Room extends Component {
   onJoinRoom = (e) => {
-    //change urls and also fetch request
     this.props.joinRoom(localStorage.userId, e.target.id)
     this.props.history.push('/r/'+e.target.id)
   }
@@ -19,9 +18,12 @@ class Room extends Component {
     return (
         <List.Item>
           <List.Content floated='right'>
-            <Button id={this.props.room._id} onClick={this.onJoinRoom.bind(this)}>
-              { this.props.room.users.indexOf(localStorage.userId) >= 0 ? "Re-Enter Room" : "Join Room" }
-            </Button>
+            { this.props.room.users.length < 2
+              ? <Button id={this.props.room._id} onClick={this.onJoinRoom.bind(this)}>
+                  { this.props.room.users.indexOf(localStorage.userId) >= 0 ? "Re-Enter Room" : "Join Room" }
+                  </Button>
+              : <Button onClick={() => this.props.history.push('/g/'+this.props.room._id)}>Spectate</Button>
+            }
             { this.props.room.host === localStorage.userId
               ? <Button onClick={() => this.props.disbandRoom(this.props.room._id)}>Disband Room</Button>
               : this.props.room.users.indexOf(localStorage.userId) >= 0
@@ -31,7 +33,7 @@ class Room extends Component {
           </List.Content>
           <List.Content>
             <List.Header>{this.props.room.name}</List.Header>
-            {this.props.room.users.length}/4 users
+            {this.props.room.users.length}/2 users
           </List.Content>
         </List.Item>
     )

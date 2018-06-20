@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import GridRow from './GridRow'
+<<<<<<< HEAD
 
 class Grid extends Component {
   constructor(props) {
@@ -40,6 +41,74 @@ class Grid extends Component {
 
     placePiece = (rows, color) => {
     let piece = this.state.currentPiece
+=======
+import Instructions from '../Instructions'
+
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
+import setUpQueue from '../../../actions/setUpQueue'
+import nextQueue from '../../../actions/nextQueue'
+import updateRows from '../../../actions/updateRows'
+import setUpRows from '../../../actions/setUpRows'
+
+import { Transition } from 'semantic-ui-react'
+
+
+class Grid extends Component {
+
+  constructor(props) {
+    super(props)
+    this.user = this.props.users.find(u => u._id === localStorage.userId)
+
+    this.state = {
+      rows: new Array(20),
+      currentPiece: {},
+      referencePoint: [0,5],
+      holdPiece:[],
+      queueOfPieces: [],
+      rotationAngle: 3,
+      speed: 1000,
+      visibleAnimation: new Array(20),
+      disableAll: false,
+      swapped: false
+    }
+    this.hasReachedBottom = this.hasReachedBottom.bind(this)
+    this.keyboardEvent = this.keyboardEvent.bind(this)
+    this.setUpQueue = this.setUpQueue.bind(this)
+    this.completedRowAnimation = this.completedRowAnimation.bind(this)
+  }
+
+  componentDidMount() {
+    this.init()
+    this.updateBoard()
+    this.event = this.keyboardEvent()
+    console.log('inside componentdidmount');
+    this.props.socket.send(JSON.stringify({
+      subscription: this.props.roomId,
+      type:'NEXT_HOLD_PIECES',
+      user: this.user._id,
+      payload: {
+        next: this.state.queueOfPieces.length > 0 ? this.state.queueOfPieces[0] : {blocks:[], color:0},
+        hold: this.state.holdPiece
+      }
+    }))
+  }
+
+  init = () => {
+    this.setUpQueue()
+    this.setState({
+      currentPiece: this.getNextPiece(),
+      swapped: false,
+      disableAll: false,
+      rotationAngle: 3,
+      holdPiece: []
+    })
+    this.setUpGrid()
+  }
+
+  placePiece = (rows, color) => {
+    let piece = this.state.currentPiece.blocks
+>>>>>>> newRow
     const coord = this.state.referencePoint
     if(!piece || piece.length < 1){
       piece = this.getNextPiece()
@@ -50,6 +119,7 @@ class Grid extends Component {
         rows[coord[0] + piece[i][0]][coord[1] + piece[i][1]] = color
       }
     }
+<<<<<<< HEAD
     this.setState({
       rows: rows
     })
@@ -57,6 +127,19 @@ class Grid extends Component {
     return rows
   }
 
+=======
+
+    this.setState({
+      rows: rows
+    })
+    return rows
+  }
+
+  restartGame = () => {
+    this.init()
+  }
+
+>>>>>>> newRow
   canPlacePiece(coord, piece, i){
     return coord[0] + piece[i][0] > -1 && coord[1] + piece[i][1] >= 0 && coord[1] + piece[i][1] < 10
   }
@@ -75,10 +158,16 @@ class Grid extends Component {
     this.placePiece(rows, 2)
   }
 
+<<<<<<< HEAD
  canMoveHorizontally = (direction) => {
    const piece = [...this.state.currentPiece, [0,0]]
    const rows = this.state.rows
    console.log(piece)
+=======
+ canMoveHorizontally = (direction, pieces = null) => {
+   const piece = pieces ? pieces : [...this.state.currentPiece.blocks, [0,0]]
+   const rows = this.state.rows
+>>>>>>> newRow
    for(let i = 0; i < piece.length; i++){
      if(!this.isIrrelevantPiece(piece[i], piece, direction) && this.hasCellDirectlyHorizontal(rows, piece[i], direction)){
        return false
@@ -96,18 +185,44 @@ class Grid extends Component {
 
   updateBoard = () => {
     const that = this
+<<<<<<< HEAD
     setInterval(()=>{
       // if(this.props.playGame)
         that.moveDown()
     }, 1000)
+=======
+    console.log('inside updateboard');
+    this.props.socket.send(JSON.stringify({
+      subscription: this.props.roomId,
+      type:'NEXT_HOLD_PIECES',
+      user: this.user._id,
+      payload: {
+        next: this.state.queueOfPieces.length > 0 ? this.state.queueOfPieces[0] : {blocks:[], color:0},
+        hold: this.state.holdPiece
+      }
+    }))
+    setInterval(()=>{
+      if(!this.state.disableAll)
+        that.moveDown()
+
+    }, this.state.speed)
+>>>>>>> newRow
   }
 
   setUpGrid = () => {
     let result = this.state.rows
+<<<<<<< HEAD
+=======
+    let animation = this.state.visibleAnimation
+>>>>>>> newRow
     let i = 0
     let j = 0
     for (i = 0; i < result.length; i++) {
       result[i] =  new Array(10)
+<<<<<<< HEAD
+=======
+      animation[i] = false
+>>>>>>> newRow
       for(j = 0; j < result[i].length; j++){
         result[i][j] = 0
       }
@@ -118,24 +233,29 @@ class Grid extends Component {
   rotate = () => {
     const rows = this.state.rows
     const piece = this.state.currentPiece
-    const rotated = piece.map((row) => this.state.rotationAngle > 1
+    const rotated = piece.blocks.map((row) => this.state.rotationAngle > 1
       ? this.state.rotationAngle === 2
         ? [row[1] * -1, row[0]]
         : [row[1], row[0] * -1]
       : [row[1], row[0]])
-    // TODO: check to see if rotating will pass wall boundaries
 
+    // check to see if rotating will pass wall boundaries / collide with other pieces
     this.removePiece(rows)
-    this.setState({
-      currentPiece: rotated,
-      rotationAngle: this.state.rotationAngle + 1 % 4
-    })
-    this.placePiece(rows, 2)
+    if(this.canMoveHorizontally(0, rotated)){
+      this.removePiece(rows)
+      this.setState({
+        currentPiece: {blocks: [...rotated], color: this.state.currentPiece.color },
+        rotationAngle: this.state.rotationAngle + 1 % 4
+      })
+      this.placePiece(rows, this.state.currentPiece.color)
+    }else{
+      this.placePiece(rows, piece.color)
+    }
+
   };
 
   addNewPiece = () => {
     const rows = this.state.rows
-    console.log('reached bottom? switch pieces/get a new piece')
     this.setState({
       currentPiece: this.getNextPiece(),
       currentRow: 0,
@@ -152,31 +272,44 @@ class Grid extends Component {
   }
 
   setUpQueue = () => {
-    const keys = Object.keys(this.terominoes);
-    let queue = []
     const that = this
+
+    const keys = Object.keys(that.props.tetrominoes);
+    let queue = []
     keys.forEach(k => {
       let i = 0;
       for(i; i < 2; i++){
-        queue.push(that.terominoes[k])
+        queue.push(that.props.tetrominoes[k])
       }
     })
-    queue = this.shuffleQueue(queue)
-    console.log("shuffled queue: ", queue)
+    queue = that.shuffleQueue(queue)
     that.setState({
       queueOfPieces: queue
     })
+    console.log('inside setUpQueue')
+    this.props.socket.send(JSON.stringify({
+      subscription: this.props.roomId,
+      type:'NEXT_HOLD_PIECES',
+      user: this.user._id,
+      payload: {
+        next: queue.length > 0 ? queue[0] : {blocks:[], color:0},
+        hold: this.state.holdPiece
+      }
+    }))
+
     return queue
   }
 
   shuffleQueue = (queue) => {
     let ran = 0
     let temp = 0
-    for(let i = 0; i < queue.length; i++){
-      ran = Math.floor(Math.random() * (queue.length))
-      temp = queue[i]
-      queue[i] = queue[ran]
-      queue[ran] = temp
+    for(let j = 0; j < 2; j ++){
+      for(let i = 0; i < queue.length; i++){
+        ran = Math.floor(Math.random() * (queue.length))
+        temp = queue[i]
+        queue[i] = queue[ran]
+        queue[ran] = temp
+      }
     }
     return queue
   }
@@ -190,32 +323,59 @@ class Grid extends Component {
     this.setState({
       queueOfPieces: queue
     })
+    console.log('inside getNextPiece')
+    this.props.socket.send(JSON.stringify({
+      subscription: this.props.roomId,
+      type:'NEXT_HOLD_PIECES',
+      user: this.user._id,
+      payload: {
+        next: queue.length > 0 ? queue[0] : {blocks:[], color:0},
+        hold: this.state.holdPiece
+      }
+    }))
     return next
   }
 
-  // swapHoldingPiece = () => {
-  //   const current = this.state.currentPiece
-  //   this.setState({
-  //     currentPiece: this.state.holdingPiece,
-  //     holdingPiece: current,
-  //   })
-  // }
-  //
-  // hasNextRowEmpty = () => {
-  //   const rows = this.state.rows
-  //   let i = 0
-  //   for(i; i < rows[this.state.currentRow+this.state.currentPiece.length].length; i++){
-  //     if(rows[this.state.currentRow+this.state.currentPiece.length][i] > 0){
-  //       return false
-  //     }
-  //   }
-  //   return true
-  // }
+  swapHoldingPiece = () => {
+    if(!this.state.swapped){
+      const current = this.state.currentPiece
+      this.removePiece(this.state.rows)
+      if(!this.state.holdPiece || this.state.holdPiece.length < 1){
+        this.setState({
+          currentPiece: this.getNextPiece(),
+          holdPiece: current,
+          swapped: true,
+          referencePoint: [0,5]
+        })
+      }
+      else{
+        this.setState({
+          currentPiece: this.state.holdPiece,
+          holdPiece: current,
+          swapped: true,
+          referencePoint: [0,5]
+        })
+      }
+      this.placePiece(this.state.rows, this.state.currentPiece.color)
+      console.log('inside swapholdingpiece', this.state.queueOfPieces.length > 0 ? this.state.queueOfPieces[0] : {blocks:[], color:0});
+
+      this.props.socket.send(JSON.stringify({
+        subscription: this.props.roomId,
+        type:'NEXT_HOLD_PIECES',
+        user: this.user._id,
+        payload: {
+          next: this.state.queueOfPieces.length > 0 ? this.state.queueOfPieces[0] : {blocks:[], color:0},
+          hold: current
+        }
+      }))
+    }
+  }
+
 
   hasReachedBottom = () => {
     // return this.state.currentRow + this.state.currentPiece.length >= this.state.rows.length
     const point = this.state.referencePoint
-    const pieces = [...this.state.currentPiece, [0,0]]
+    const pieces = [...this.state.currentPiece.blocks, [0,0]]
     for(let i = 0; i < pieces.length; i++){
       if(this.getTetrominoGridValue(point, pieces[i])[0] >= this.state.rows.length - 1){
         return true
@@ -223,9 +383,11 @@ class Grid extends Component {
     }
     return false
   }
+
   hasReachedLeftWall = () => {
     const point = this.state.referencePoint
-    const pieces = [...this.state.currentPiece, [0,0]]
+    const pieces = [...this.state.currentPiece.blocks, [0,0]]
+
     for(let i = 0; i < pieces.length; i++){
       if(this.getTetrominoGridValue(point, pieces[i])[1] <= 0){
         return true
@@ -233,9 +395,12 @@ class Grid extends Component {
     }
     return false
   }
+
+
   hasReachedRightWall = () => {
     const point = this.state.referencePoint
-    const pieces = [...this.state.currentPiece, [0,0]]
+    const pieces = [...this.state.currentPiece.blocks, [0,0]]
+
     for(let i = 0; i < pieces.length; i++){
       if(this.getTetrominoGridValue(point, pieces[i])[1] >= this.state.rows[0].length - 1){
         return true
@@ -248,16 +413,10 @@ class Grid extends Component {
   getTetrominoGridValue = (point, piece) => {
     return [parseInt(point[0], 10) + parseInt(piece[0], 10), parseInt(point[1], 10) + parseInt(piece[1], 10)]
   }
-  //
-  // // sets tetromino points to a different coordinate/value
-  // setTetrominoGridValue = (point, piece, i, value) => {
-  //   //TODO: NOT SURE HOW TO DO THIS YET
-  //   return point[piece[i][0]][piece[i][1]] = value
-  // }
 
   hasPieceDirectlyBelow = () => {
     const rows = this.state.rows
-    const temp = [...this.state.currentPiece, [0,0]]
+    const temp = [...this.state.currentPiece.blocks, [0,0]]
 
     for(let i = 0; i < temp.length; i++){
       if(!this.isIrrelevantPiece(temp[i], temp, 0) && this.hasCellDirectlyBelow(rows, this.getTetrominoGridValue(this.state.referencePoint, temp[i]))){
@@ -282,24 +441,182 @@ class Grid extends Component {
   }
 
   hasCellDirectlyBelow = (rows, point) => {
-    return (point[0] < 0 || point[1] < 0 || point[0] > 19 || point[1] > 9) ? false :  rows[point[0] + 1][point[1]] > 0
+    return (point[0] < 0 || point[1] < 0 || point[0] >= 19 || point[1] > 9) ? false :  rows[point[0] + 1][point[1]] > 0
   }
 
   hasCellDirectlyHorizontal = (rows, point, direction) => {
-
-    return (point[0] < 0 || point[1] < 0 || point[0] > 19 || point[1] > 9) ? false : rows[point[0]][point[1] + direction] > 0
+    const gridPoint = this.getTetrominoGridValue(this.state.referencePoint, point)
+    return (gridPoint[0] < 0 || gridPoint[1] + direction < 0 || gridPoint[0] > 19 || gridPoint[1] + direction > 9) ? false : rows[gridPoint[0]][gridPoint[1] + direction] > 0
   }
 
-  // deleteRow = (arr, row) => {
-  //    arr = arr.slice(0)
-  //    arr.splice(row, 1)
-  //    return arr
-  // }
+  moveDown = () => {
+     if(!this.state.disableAll){ // check if the game is paused/started or not
+      if(!this.isGameOver()){
+        if(!this.hasReachedBottom() && !this.hasPieceDirectlyBelow()){
+          this.placePieceDown()
+        } else{
+          this.setState({
+            swapped: false
+          })
+          this.startNewPiece()
+        }
+      } else if(this.isGameOver()) {
 
-  // }
+        this.props.socket.send(JSON.stringify({
+          subscription: this.props.roomId,
+          type:'GAME_OVER',
+          user: this.user._id,
+          payload: this.state.rows
+        }))
+        console.log('game over!')
+        this.setState({
+          disableAll: true
+        })
+      } else {
+        this.setState({
+          swapped: false
+        })
+        this.startNewPiece()
+      // }
+    }
+    this.props.socket.send(JSON.stringify({
+      subscription: this.props.roomId,
+      type:'SEND_ROWS',
+      user: this.user._id,
+      payload: this.state.rows
+    }))
+  }
+}
 
-  isRowCompleted = () => {
+  placePieceDown = () => {
+    const point = this.state.referencePoint
+    let rows = this.removePiece(this.state.rows)
+    this.setState({
+      referencePoint: [point[0] + 1, point[1]]
+    })
+    this.placePiece(rows, this.state.currentPiece.color)
+  }
 
+  startNewPiece = () => {
+    this.completeRows()
+    this.resetTetrominoState()
+  }
+
+  completeRows = () => {
+    const rows = this.state.rows
+    const piece = [...this.state.currentPiece.blocks, [0,0]]
+    let animation = this.state.visibleAnimation.splice(0)
+    let result = []
+    let pieceCoord = []
+    for(let i = 0; i < piece.length; i++){
+      pieceCoord = this.getTetrominoGridValue(this.state.referencePoint, piece[i])
+      if(this.isRowCompleted(pieceCoord[0])){
+        result.push(pieceCoord[0])
+       animation[pieceCoord[0]] = true
+      }
+    }
+    if(result.length > 0)
+      this.completedRowAnimation(rows, animation, [...new Set(result)].sort())
+  }
+
+  showRestart() {
+    this.setState({
+      showRestart: true
+    })
+  }
+
+  addGarbageTiles = (userId, combos) => {
+    if(userId !== localStorage.userId){
+      let gameOver = false
+      let rows = this.state.rows.slice(0)
+      this.removePiece(rows)
+      for(let i = 0; i < combos; i++){
+        rows.push([8,8,8,8,8,8,8,8,8,8])
+        if(rows[i].every(r => r > 0)){
+          gameOver = true
+        }
+        rows = this.deleteRow(rows, 0)
+      }
+      this.placePiece(rows, this.state.currentPiece.color)
+      this.setState({
+        rows: rows
+      })
+
+      this.props.socket.send(JSON.stringify({
+        subscription: this.props.roomId,
+        type:'SEND_ROWS',
+        user: this.user._id,
+        payload: rows
+      }))
+
+      if(gameOver){
+        this.props.socket.send(JSON.stringify({
+          subscription: this.props.roomId,
+          type:'GAME_OVER',
+          user: this.user._id,
+          payload: this.state.rows
+        }))
+        this.setState({
+          disableAll: true
+        })
+      }
+
+    }
+  }
+
+  gameOver = () => {
+    this.setState({
+      disableAll: true
+    })
+  }
+
+  isGarbageRow = (row) => {
+    return row.every(r => r > 7)
+  }
+
+  completedRowAnimation = (rows, animation, result) => {
+    setTimeout(()=>{console.log("doop")}, 800)
+    for(let i = 0; i < result.length; i++){
+      if(result[i+1] < 20 && this.isGarbageRow(rows[result[i+1]])){
+        rows = this.deleteRow(rows, result[i+1])
+        rows.unshift([0,0,0,0,0,0,0,0,0,0])
+      }
+      rows = this.deleteRow(rows, result[i])
+      rows.unshift([0,0,0,0,0,0,0,0,0,0])
+    }
+
+    if(result.length > 0){
+      let combo = 0
+      if(result.length < 4) {
+        combo = result.length - 1
+      } else {
+        combo = 4
+      }
+
+      this.props.socket.send(JSON.stringify({
+        subscription: this.props.roomId,
+        type:'SEND_GARBAGE_TILES',
+        user: this.user._id,
+        payload: {
+          rows: combo
+        }
+      }))
+    }
+
+    this.setState({
+      rows: rows,
+      visibleAnimation: new Array(20)
+    })
+  }
+
+  deleteRow = (rows, row) => {
+    let result = rows.slice(0)
+    result.splice(row, 1)
+    return result
+  }
+
+  isRowCompleted = (row) => {
+    return row < 0 ? false : this.state.rows[row].every(r => r > 0)
   }
 
   // sets a new piece as current piece and set the ref. point back to top
@@ -311,134 +628,70 @@ class Grid extends Component {
     })
   }
 
-  sendData = (data) => {
-    this.props.socket.send(JSON.stringify({
-      data
-    }))
-  }
-
-  onMoveHorizontal = (data) => {
-    this.removePiece(data.payload.rows)
-    this.setState({
-      referencePoint: data.payload.referencePoint,
-    })
-    this.placePiece(data.payload.rows, data.payload.color)
-  }
-
-  onMoveDown = (data) => {
-    let rows = this.removePiece(data.payload.rows)
-    this.setState({
-      referencePoint: data.payload.referencePoint
-    })
-    this.placePiece(rows, data.payload.color)
-  }
-
-    moveDown = () => {
-      // if(this.props.playGame){ // check if the game is paused/started or not
-      if(!this.isGameOver() && !this.hasReachedBottom() && !this.hasPieceDirectlyBelow()){
-        const point = this.state.referencePoint
-        this.sendData({
-          type: 'DOWN',
-          user: localStorage.userId,
-          payload: {
-            referencePoint: [point[0] + 1, point[1]],
-            rows: this.state.rows,
-            color: 2
-          }
-        })
-      } else if(this.isGameOver()) {
-        console.log('game over!')
-
-      } else {
-        // TODO: check to see if row is completed
-
-
-        this.resetTetrominoState()
-      }
-    }
-
   keyboardEvent = () => {
     const that = this
-    return document.addEventListener('keydown', (e) => {
-
+    document.addEventListener('keydown', (e) => {
       console.log(e.key)
-      if(this.props.user._id === localStorage.userId){
-      // if(that.props.playGame){
+      if(!that.state.disableAll){
         if (e.key === "ArrowLeft") {
           if(that.canMoveHorizontally(-1)) {
             let point = that.state.referencePoint
-            that.sendData({
-              type: 'LEFT',
-              user: localStorage.userId,
-              payload: {
-                referencePoint: [point[0], point[1] - 1],
-                color: 2,
-                rows: that.state.rows
-              }
+            that.removePiece(that.state.rows)
+            that.setState({
+              referencePoint: [point[0], point[1] - 1],
+              currentColumn: that.state.currentColumn - 1,
             })
-
+            that.placePiece(that.state.rows, that.state.currentPiece.color)
           }
         } else if(e.key === "ArrowRight") {
           if(that.canMoveHorizontally(1)) {
             let point = that.state.referencePoint
-            that.sendData({
-              type: 'RIGHT',
-              user: localStorage.userId,
-              payload: {
-                referencePoint: [point[0], point[1] + 1],
-                color: 2,
-                rows: that.state.rows
-              }
+            that.removePiece(that.state.rows)
+            that.setState({
+              referencePoint: [point[0], point[1] + 1],
             })
+            that.placePiece(that.state.rows, that.state.currentPiece.color)
           }
         } else if(e.key === "ArrowUp") {
           that.rotate()
-
         } else if(e.key === "ArrowDown"){
-          console.log('move down')
           that.moveDown()
         } else if(e.key === " "){ // HARD DROP
-          const row = that.getBottomMostRow()
-          const rows = that.state.rows
-          that.removePiece(rows)
+          that.removePiece(that.state.rows)
+          while(!(that.hasReachedBottom() && that.hasPieceDirectlyBelow())){
+            if(that.hasReachedBottom() || that.hasPieceDirectlyBelow()){
+              break;
+            } else{
+              const point = this.state.referencePoint
+              that.setState({
+                referencePoint: [point[0] + 1, point[1]]
+              })
+            }
+          }
+          that.placePiece(that.state.rows, that.state.currentPiece.color)
+          that.completeRows()
           that.setState({
-            referencePoint: [row, that.state.referencePoint[1]]
+            swapped:false
           })
-          that.placePiece(rows, 2)
+          that.resetTetrominoState()
+        } else if(e.key === "c"){
+          that.swapHoldingPiece()
         }
+        that.props.socket.send(JSON.stringify({
+          subscription: that.props.roomId,
+          type:'SEND_ROWS',
+          user: that.user._id,
+          payload: that.state.rows
+        }))
       }
-      // }
     })
   }
 
-  getBottomMostRow = () => {
-    const rows = this.state.rows
-    const piece = this.state.currentPiece
-    const point = this.state.referencePoint
-    let result = 20
-    let counter = rows.length - 1
-    let currentColumn
-    let offset = 0
-
-    for(let i = 0; i < piece.length; i++){
-      currentColumn = point[1] + piece[i][1]
-      counter = rows.length - 1
-      while(rows[counter][currentColumn] > 0){
-        counter --;
-      }
-      if(result >= counter) {
-        if(offset < piece[i][0]){
-          offset = piece[i][0]
-        }
-        result = counter
-      }
-
-    }
-    return result - offset
-  }
 
   render() {
-    const rows = this.state.rows.map((r, i) => <GridRow key={i} id={i} row={this.state.rows[i]} />)
+    const rows = this.state.rows.map((r, i) =>
+        <GridRow key={i} id={i} row={this.state.rows[i]} />
+      )
     return(
       <div className="grid-container">
         {rows}
@@ -447,4 +700,21 @@ class Grid extends Component {
   }
 }
 
-export default Grid
+
+function mapStateToProps(state){
+  return {
+    users: state.users.users
+  }
+}
+
+function mapDispatchToProps(dispatch){
+  return bindActionCreators({
+    setUpQueue: (tetrominoes, userId) => setUpQueue(tetrominoes, userId),
+    nextQueue: (userId) => nextQueue(userId),
+    setUpRows: (userId) => setUpRows(userId),
+    updateRows: (rows, ref, userId) => updateRows(rows, ref, userId)
+
+  }, dispatch)
+}
+
+export default connect(mapStateToProps, mapDispatchToProps, null, { withRef: true })(Grid)

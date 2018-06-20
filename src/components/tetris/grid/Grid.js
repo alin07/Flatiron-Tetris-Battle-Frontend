@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import GridRow from './GridRow'
+import Instructions from '../Instructions'
 
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
@@ -7,6 +8,7 @@ import setUpQueue from '../../../actions/setUpQueue'
 import nextQueue from '../../../actions/nextQueue'
 import updateRows from '../../../actions/updateRows'
 import setUpRows from '../../../actions/setUpRows'
+
 import { Transition } from 'semantic-ui-react'
 
 
@@ -53,7 +55,11 @@ class Grid extends Component {
   init = () => {
     this.setUpQueue()
     this.setState({
-      currentPiece: this.getNextPiece()
+      currentPiece: this.getNextPiece(),
+      swapped: false,
+      disableAll: false,
+      rotationAngle: 3,
+      holdPiece: []
     })
     this.setUpGrid()
   }
@@ -75,6 +81,10 @@ class Grid extends Component {
       rows: rows
     })
     return rows
+  }
+
+  restartGame = () => {
+    this.init()
   }
 
   canPlacePiece(coord, piece, i){
@@ -247,7 +257,6 @@ class Grid extends Component {
         hold: this.state.holdPiece
       }
     }))
-
     return next
   }
 
@@ -284,17 +293,6 @@ class Grid extends Component {
     }
   }
 
-  // hasNextRowEmpty = () => {
-  //   const rows = this.state.rows
-  //   let i = 0
-  //   for(i; i < rows[this.state.currentRow+this.state.currentPiece.length].length; i++){
-  //     if(rows[this.state.currentRow+this.state.currentPiece.length][i] > 0){
-  //       return false
-  //     }
-  //   }
-  //   return true
-  // }
-
   hasReachedBottom = () => {
     // return this.state.currentRow + this.state.currentPiece.length >= this.state.rows.length
     const point = this.state.referencePoint
@@ -306,6 +304,7 @@ class Grid extends Component {
     }
     return false
   }
+
   hasReachedLeftWall = () => {
     const point = this.state.referencePoint
     const pieces = [...this.state.currentPiece.blocks, [0,0]]
@@ -316,6 +315,7 @@ class Grid extends Component {
     }
     return false
   }
+
   hasReachedRightWall = () => {
     const point = this.state.referencePoint
     const pieces = [...this.state.currentPiece.blocks, [0,0]]
@@ -331,12 +331,6 @@ class Grid extends Component {
   getTetrominoGridValue = (point, piece) => {
     return [parseInt(point[0], 10) + parseInt(piece[0], 10), parseInt(point[1], 10) + parseInt(piece[1], 10)]
   }
-  //
-  // // sets tetromino points to a different coordinate/value
-  // setTetrominoGridValue = (point, piece, i, value) => {
-  //   //TODO: NOT SURE HOW TO DO THIS YET
-  //   return point[piece[i][0]][piece[i][1]] = value
-  // }
 
   hasPieceDirectlyBelow = () => {
     const rows = this.state.rows
@@ -440,7 +434,13 @@ class Grid extends Component {
       }
     }
     if(result.length > 0)
-      this.completedRowAnimation(rows, animation, [...new Set(result)])
+      this.completedRowAnimation(rows, animation, [...new Set(result)].sort())
+  }
+
+  showRestart() {
+    this.setState({
+      showRestart: true
+    })
   }
 
   addGarbageTiles = (userId, combos) => {
@@ -488,10 +488,14 @@ class Grid extends Component {
     })
   }
 
+  isGarbageRow = (row) => {
+    return row.every(r => r > 7)
+  }
+
   completedRowAnimation = (rows, animation, result) => {
     setTimeout(()=>{console.log("doop")}, 800)
     for(let i = 0; i < result.length; i++){
-      if(i+1 < 20 && result[i+1] > 7){
+      if(result[i+1] < 20 && this.isGarbageRow(rows[result[i+1]])){
         rows = this.deleteRow(rows, result[i+1])
         rows.unshift([0,0,0,0,0,0,0,0,0,0])
       }
@@ -607,9 +611,9 @@ class Grid extends Component {
         <GridRow key={i} id={i} row={this.state.rows[i]} />
       )
     return(
-        <div className="grid-container">
-          {rows}
-        </div>
+      <div className="grid-container">
+        {rows}
+      </div>
     )
   }
 }

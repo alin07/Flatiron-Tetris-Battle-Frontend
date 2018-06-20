@@ -56,6 +56,26 @@ body {
   visibility:hidden
 }
 
+ul {
+   list-style-type: none;
+}
+
+li {
+  margin-left: 3em;
+  text-align:center;
+}
+
+.instructions {
+  text-align:center;
+}
+
+.instructions-container {
+  margin: 2em 2em;
+  display:inline-block;
+  float:right;
+  text-align:center;
+}
+
 /* ['white', 'dodger-blue', 'tomato', 'yellow', 'orange', 'mediumseagreen', 'slate-blue']
 } */
 .white {

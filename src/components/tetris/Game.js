@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import PlayerBoard from './PlayerBoard'
 import OtherPlayersBoard from './OtherPlayersBoard'
+import Instructions from './Instructions'
 
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
@@ -15,6 +16,8 @@ import resetTetro from '../../actions/resetTetro'
 import getRoom from '../../actions/getRoom'
 import setUsers from '../../actions/setUsers'
 import setRows from '../../actions/setRows'
+
+import { Button } from 'semantic-ui-react'
 
 class Game extends Component {
   constructor(props) {
@@ -43,7 +46,7 @@ class Game extends Component {
         }
       },
       canPlay: false,
-      gameOver: false
+      gameOver: false,
     }
     this.room = null
     this.handleSocketInput = this.handleSocketInput.bind(this)
@@ -89,6 +92,14 @@ class Game extends Component {
         that.waitForConnection(callback, interval);
       }, interval)
     }
+  }
+
+  onRestartGame = () => {
+    this.socket.send(JSON.stringify({
+      subscription: this.roomId,
+      type: 'RESTART_GAME',
+      user: localStorage.userId
+    }))
   }
 
   handleSocketInput = (data) => {
@@ -137,7 +148,7 @@ class Game extends Component {
         this.setState({
           gameOver: false
         })
-        this.child.child.getWrappedInstance.restartGame()
+        this.child.child.getWrappedInstance().restartGame()
         break;
       case 'NEXT_HOLD_PIECES':
       console.log(data.payload.next)
@@ -176,7 +187,7 @@ class Game extends Component {
         this.props.setUpRows(u._id)
         this.props.setUpQueue(this.setUpQueue(), u._id)
         console.log('inside setupinit');
-        
+
       })
 
       this.socket.send(JSON.stringify({
@@ -237,8 +248,14 @@ class Game extends Component {
              ? <PlayerBoard ref={ref => { this.child = ref }} holdRows={this.state.userHoldNext.you.hold} nextRows={this.state.userHoldNext.you.next} canPlay={this.state.canPlay} roomId={this.roomId} tetrominoes={this.state.tetrominoes} socket={this.socket} key={you._id} user={you} />
              : <h1>WAITING FOR OTHER PLAYER...</h1>
         }
-         { this.state.canPlay ? otherPlayers : null}
+         { this.state.canPlay ? otherPlayers : null }
+         <div id="instructions-container">
+           { this.room && this.room.host === localStorage.userId && this.state.gameOver
+             ? <Button onClick={this.onRestartGame}>Restart Game</Button>
+             : <Instructions /> }
+         </div>
       </div>
+
     )
   }
 }

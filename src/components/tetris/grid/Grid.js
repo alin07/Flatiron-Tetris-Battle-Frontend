@@ -256,7 +256,7 @@ class Grid extends Component {
       type:'NEXT_HOLD_PIECES',
       user: this.user._id,
       payload: {
-        next: queue.length > 0 ? queue[0] : {blocks:[], color:0},
+        next: next ? next : {blocks:[], color:0},
         hold: this.state.holdPiece
       }
     }))

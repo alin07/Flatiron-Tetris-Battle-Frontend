@@ -19,6 +19,13 @@ body {
   font-family: sans-serif;
 }
 
+.small {
+  padding: 5px;
+  color: white;
+  display: inline-block;
+  border: 0.5px solid #494949;
+}
+
 .player-self {
   color: tomato;
 }
@@ -73,6 +80,11 @@ li {
   display:inline-block;
   float:right;
   text-align:center;
+
+}
+
+.next-hold {
+  display:flex;
 }
 
 /* ['white', 'dodger-blue', 'tomato', 'yellow', 'orange', 'mediumseagreen', 'slate-blue']

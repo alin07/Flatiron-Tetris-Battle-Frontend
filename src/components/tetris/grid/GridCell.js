@@ -8,11 +8,12 @@ class GridCell extends Component {
   }
   render() {
     const color = this.colors[this.props.value]
-    const animation =  this.props.isFull ? "blink_me" : ""
-    const divClass = animation + " grid-item " + color
+    const size = this.props.size ? this.props.size : "poop "
+    const divClass = this.props.size ?  size + " " + color : size + " grid-item " + color
+
      // "grid-item " + this.colors[this.props.value] + " " + this.props.isFull ? "hi" : "" }
     return(
-      <div className={divClass}></div>
+      <div className={ divClass }></div>
     )
   }
 }

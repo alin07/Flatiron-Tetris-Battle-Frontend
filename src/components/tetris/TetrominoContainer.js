@@ -6,7 +6,7 @@ const TetrominoContainer = (props) => {
   const refPoint = [2,2]
   const placedPiece = placePiece(board, refPoint, props.rows)
 
-  const rows = placedPiece.map((g, i) => <GridRow key={i} row={g} />)
+  const rows = placedPiece.map((g, i) => <GridRow size="small" key={i} row={g} />)
   return (
     <div>
         { rows }

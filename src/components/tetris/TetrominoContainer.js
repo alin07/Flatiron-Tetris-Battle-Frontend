@@ -2,15 +2,33 @@ import React from 'react'
 import GridRow from './grid/GridRow'
 
 const TetrominoContainer = (props) => {
-  console.log(props)
-  const doop = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
-  // const rows = props.rows.blocks.map((g, i) => <GridRow key={i} row={props.rows[i]} />)
+  const board = [[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]
+  const refPoint = [2,2]
+  const placedPiece = placePiece(board, refPoint, props.rows)
+
+  const rows = placedPiece.map((g, i) => <GridRow key={i} row={g} />)
   return (
     <div>
-      { /* rows */ }
-      <p>hi</p>
+        { rows }
     </div>
   )
 }
+
+const placePiece = (board, point, piece) => {
+  let blocks = piece.blocks
+  if(!blocks || blocks.length < 1){
+    return board
+  }
+  board[point[0]][point[1]] = piece.color
+  for(let i = 0; i < blocks.length; i++){
+      board[point[0] + blocks[i][0]][point[1] + blocks[i][1]] = piece.color
+  }
+
+  // this.setState({
+  //   rows: rows
+  // })
+  return board
+}
+
 
 export default TetrominoContainer

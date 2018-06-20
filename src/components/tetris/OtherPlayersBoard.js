@@ -12,11 +12,11 @@ const OtherPlayersBoard = (props) => {
     <div className="inline">
       <h1>{props.user.username}</h1>
       {rows}
-      <div>
-        <h1>Hold</h1>
-        <TetrominoContainer rows={props.hold} />
+      <div className="inline">
         <h1>Next</h1>
         <TetrominoContainer rows={props.next} />
+        <h1>Hold</h1>
+        <TetrominoContainer rows={props.hold} />
       </div>
 
     </div>

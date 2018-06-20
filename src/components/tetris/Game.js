@@ -34,12 +34,12 @@ class Game extends Component {
       },
       userHoldNext: {
         you: {
-          next: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
-          hold: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
+          next: {blocks:[], color:0},
+          hold: {blocks:[], color:0}
         },
         opponent: {
-          next: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
-          hold: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
+          next: {blocks:[], color:0},
+          hold: {blocks:[], color:0}
         }
       },
       canPlay: false,
@@ -140,6 +140,7 @@ class Game extends Component {
         this.child.child.getWrappedInstance.restartGame()
         break;
       case 'NEXT_HOLD_PIECES':
+      console.log(data.payload.next)
         if(data.user === localStorage.userId){
           this.setState({
             userHoldNext: {
@@ -161,7 +162,6 @@ class Game extends Component {
             }
           })
         }
-
         break;
       default:
         console.log(data.type, " is not supported")
@@ -172,10 +172,11 @@ class Game extends Component {
     if(this.room && localStorage.userId === this.room.host){
       // if you're the host, set everything up, and send it over
       this.user = this.props.users.find(u => u._id === localStorage.userId)
-
       this.props.users.forEach(u => {
         this.props.setUpRows(u._id)
         this.props.setUpQueue(this.setUpQueue(), u._id)
+        console.log('inside setupinit');
+        
       })
 
       this.socket.send(JSON.stringify({
@@ -187,13 +188,11 @@ class Game extends Component {
           users: this.props.users
         }
       }))
-
     } else if(!this.state.canPlay){
       // wait for everyone
       // while(!this.state.canPlay || this.room){
         window.setTimeout(() => {this.setUpInit();}, 1000);
       // }
-
     }
   }
 
@@ -223,6 +222,7 @@ class Game extends Component {
   }
 
   render(){
+
     const isSpectator = !localStorage.userId || (localStorage.userId && this.props.users.filter(u => u._id === localStorage.userId).length < 1)
     const you = this.props.users.find(u => u._id === localStorage.userId)
     const otherPlayers = !isSpectator
@@ -235,7 +235,7 @@ class Game extends Component {
            ? null
            : this.state.canPlay
              ? <PlayerBoard ref={ref => { this.child = ref }} holdRows={this.state.userHoldNext.you.hold} nextRows={this.state.userHoldNext.you.next} canPlay={this.state.canPlay} roomId={this.roomId} tetrominoes={this.state.tetrominoes} socket={this.socket} key={you._id} user={you} />
-             : <h1>WAITING FOR OTHER PLAYERS...</h1>
+             : <h1>WAITING FOR OTHER PLAYER...</h1>
         }
          { this.state.canPlay ? otherPlayers : null}
       </div>

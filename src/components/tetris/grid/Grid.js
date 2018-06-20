@@ -25,7 +25,8 @@ class Grid extends Component {
       rotationAngle: 3,
       speed: 1000,
       visibleAnimation: new Array(20),
-      disableAll: false
+      disableAll: false,
+      swapped: false
     }
     this.hasReachedBottom = this.hasReachedBottom.bind(this)
     this.keyboardEvent = this.keyboardEvent.bind(this)
@@ -34,20 +35,21 @@ class Grid extends Component {
   }
 
   componentDidMount() {
-    this. init()
+    this.init()
     this.updateBoard()
     this.event = this.keyboardEvent()
-
+    console.log('inside componentdidmount');
     this.props.socket.send(JSON.stringify({
       subscription: this.props.roomId,
       type:'NEXT_HOLD_PIECES',
       user: this.user._id,
       payload: {
-        next: this.state.queueOfPieces.length > 0 ? this.state.queueOfPieces[0] : [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
+        next: this.state.queueOfPieces.length > 0 ? this.state.queueOfPieces[0] : {blocks:[], color:0},
         hold: this.state.holdPiece
       }
     }))
   }
+
   init = () => {
     this.setUpQueue()
     this.setState({
@@ -75,8 +77,6 @@ class Grid extends Component {
     return rows
   }
 
-
-
   canPlacePiece(coord, piece, i){
     return coord[0] + piece[i][0] > -1 && coord[1] + piece[i][1] >= 0 && coord[1] + piece[i][1] < 10
   }
@@ -95,8 +95,8 @@ class Grid extends Component {
     this.placePiece(rows, 2)
   }
 
- canMoveHorizontally = (direction) => {
-   const piece = [...this.state.currentPiece.blocks, [0,0]]
+ canMoveHorizontally = (direction, pieces = null) => {
+   const piece = pieces ? pieces : [...this.state.currentPiece.blocks, [0,0]]
    const rows = this.state.rows
    for(let i = 0; i < piece.length; i++){
      if(!this.isIrrelevantPiece(piece[i], piece, direction) && this.hasCellDirectlyHorizontal(rows, piece[i], direction)){
@@ -115,6 +115,16 @@ class Grid extends Component {
 
   updateBoard = () => {
     const that = this
+    console.log('inside updateboard');
+    this.props.socket.send(JSON.stringify({
+      subscription: this.props.roomId,
+      type:'NEXT_HOLD_PIECES',
+      user: this.user._id,
+      payload: {
+        next: this.state.queueOfPieces.length > 0 ? this.state.queueOfPieces[0] : {blocks:[], color:0},
+        hold: this.state.holdPiece
+      }
+    }))
     setInterval(()=>{
       if(!this.state.disableAll)
         that.moveDown()
@@ -139,19 +149,25 @@ class Grid extends Component {
 
   rotate = () => {
     const rows = this.state.rows
-    const piece = this.state.currentPiece.blocks
-    const rotated = piece.map((row) => this.state.rotationAngle > 1
+    const piece = this.state.currentPiece
+    const rotated = piece.blocks.map((row) => this.state.rotationAngle > 1
       ? this.state.rotationAngle === 2
         ? [row[1] * -1, row[0]]
         : [row[1], row[0] * -1]
       : [row[1], row[0]])
-    // TODO: check to see if rotating will pass wall boundaries
+    // check to see if rotating will pass wall boundaries / collide with other pieces
     this.removePiece(rows)
-    this.setState({
-      currentPiece: {blocks: [...rotated], color: this.state.currentPiece.color },
-      rotationAngle: this.state.rotationAngle + 1 % 4
-    })
-    this.placePiece(rows, this.state.currentPiece.color)
+    if(this.canMoveHorizontally(0, rotated)){
+      this.removePiece(rows)
+      this.setState({
+        currentPiece: {blocks: [...rotated], color: this.state.currentPiece.color },
+        rotationAngle: this.state.rotationAngle + 1 % 4
+      })
+      this.placePiece(rows, this.state.currentPiece.color)
+    }else{
+      this.placePiece(rows, piece.color)
+    }
+
   };
 
   addNewPiece = () => {
@@ -186,6 +202,17 @@ class Grid extends Component {
     that.setState({
       queueOfPieces: queue
     })
+    console.log('inside setUpQueue')
+    this.props.socket.send(JSON.stringify({
+      subscription: this.props.roomId,
+      type:'NEXT_HOLD_PIECES',
+      user: this.user._id,
+      payload: {
+        next: queue.length > 0 ? queue[0] : {blocks:[], color:0},
+        hold: this.state.holdPiece
+      }
+    }))
+
     return queue
   }
 
@@ -210,12 +237,13 @@ class Grid extends Component {
     this.setState({
       queueOfPieces: queue
     })
+    console.log('inside getNextPiece')
     this.props.socket.send(JSON.stringify({
       subscription: this.props.roomId,
       type:'NEXT_HOLD_PIECES',
       user: this.user._id,
       payload: {
-        next: this.state.queueOfPieces.length > 0 ? queue[0] : [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
+        next: queue.length > 0 ? queue[0] : {blocks:[], color:0},
         hold: this.state.holdPiece
       }
     }))
@@ -224,30 +252,36 @@ class Grid extends Component {
   }
 
   swapHoldingPiece = () => {
-    const current = this.state.currentPiece
-    if(this.state.currentPiece || this.state.currentPiece.length < 1){
-      this.setState({
-        currentPiece: this.state.holdPiece,
-        holdPiece: current,
-      })
-    }
-    else{
-
-      this.setState({
-        currentPiece: this.state.holdPiece,
-        holdPiece: current,
-      })
-    }
-
-    this.props.socket.send(JSON.stringify({
-      subscription: this.props.roomId,
-      type:'NEXT_HOLD_PIECES',
-      user: this.user._id,
-      payload: {
-        next: this.state.queueOfPieces.length > 0 ? this.state.queueOfPieces[0] : [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],
-        hold: current
+    if(!this.state.swapped){
+      const current = this.state.currentPiece
+      this.removePiece(this.state.rows)
+      if(!this.state.holdPiece || this.state.holdPiece.length < 1){
+        this.setState({
+          currentPiece: this.getNextPiece(),
+          holdPiece: current,
+          swapped: true
+        })
       }
-    }))
+      else{
+        this.setState({
+          currentPiece: this.state.holdPiece,
+          holdPiece: current,
+          swapped: true
+        })
+      }
+      this.placePiece(this.state.rows, this.state.currentPiece.color)
+      console.log('inside swapholdingpiece', this.state.queueOfPieces.length > 0 ? this.state.queueOfPieces[0] : {blocks:[], color:0});
+
+      this.props.socket.send(JSON.stringify({
+        subscription: this.props.roomId,
+        type:'NEXT_HOLD_PIECES',
+        user: this.user._id,
+        payload: {
+          next: this.state.queueOfPieces.length > 0 ? this.state.queueOfPieces[0] : {blocks:[], color:0},
+          hold: current
+        }
+      }))
+    }
   }
 
   // hasNextRowEmpty = () => {
@@ -345,6 +379,9 @@ class Grid extends Component {
         if(!this.hasReachedBottom() && !this.hasPieceDirectlyBelow()){
           this.placePieceDown()
         } else{
+          this.setState({
+            swapped: false
+          })
           this.startNewPiece()
         }
       } else if(this.isGameOver()) {
@@ -360,6 +397,9 @@ class Grid extends Component {
           disableAll: true
         })
       } else {
+        this.setState({
+          swapped: false
+        })
         this.startNewPiece()
       // }
     }
@@ -407,6 +447,7 @@ class Grid extends Component {
     if(userId !== localStorage.userId){
       let gameOver = false
       let rows = this.state.rows.slice(0)
+      this.removePiece(rows)
       for(let i = 0; i < combos; i++){
         rows.push([8,8,8,8,8,8,8,8,8,8])
         if(rows[i].every(r => r > 0)){
@@ -414,7 +455,7 @@ class Grid extends Component {
         }
         rows = this.deleteRow(rows, 0)
       }
-
+      this.placePiece(rows, this.state.currentPiece.color)
       this.setState({
         rows: rows
       })
@@ -450,6 +491,10 @@ class Grid extends Component {
   completedRowAnimation = (rows, animation, result) => {
     setTimeout(()=>{console.log("doop")}, 800)
     for(let i = 0; i < result.length; i++){
+      if(i+1 < 20 && result[i+1] > 7){
+        rows = this.deleteRow(rows, result[i+1])
+        rows.unshift([0,0,0,0,0,0,0,0,0,0])
+      }
       rows = this.deleteRow(rows, result[i])
       rows.unshift([0,0,0,0,0,0,0,0,0,0])
     }
@@ -485,7 +530,6 @@ class Grid extends Component {
   }
 
   isRowCompleted = (row) => {
-    console.log(row)
     return row < 0 ? false : this.state.rows[row].every(r => r > 0)
   }
 
@@ -501,6 +545,7 @@ class Grid extends Component {
   keyboardEvent = () => {
     const that = this
     document.addEventListener('keydown', (e) => {
+      console.log(e.key)
       if(!that.state.disableAll){
         if (e.key === "ArrowLeft") {
           if(that.canMoveHorizontally(-1)) {
@@ -539,7 +584,12 @@ class Grid extends Component {
           }
           that.placePiece(that.state.rows, that.state.currentPiece.color)
           that.completeRows()
+          that.setState({
+            swapped:false
+          })
           that.resetTetrominoState()
+        } else if(e.key === "c"){
+          that.swapHoldingPiece()
         }
         that.props.socket.send(JSON.stringify({
           subscription: that.props.roomId,

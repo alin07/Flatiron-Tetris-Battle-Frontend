@@ -1,11 +1,10 @@
 import { CREATE_ROOM } from './types'
 
-export default function createRoom(event) {
+export default function createRoom(name) {
   const id = localStorage.userId
   const username = localStorage.username
-  const room = { name: event.target.querySelector('input').value, host: id, users: [id] }
+  const room = { name: name, host: id, users: [id] }
   console.log(room)
-
   return dispatch => {
     fetch('http://localhost:3000/api/v1/rooms', {
       method:'POST',
@@ -17,6 +16,7 @@ export default function createRoom(event) {
       dispatch(createRoomAsync(r))
       return r
     }).then((r) => {
+
        window.location.href = 'http://localhost:3001/r/'+r._id
     })
   }

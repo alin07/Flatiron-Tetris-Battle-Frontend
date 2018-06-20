@@ -34,7 +34,7 @@ class Home extends Component {
         this.props.getAllRooms()
         break
       case 'CREATE':
-        this.props.createRoom()
+        this.props.createRoom(data.payload.name)
         break;
       case 'JOIN':
         this.props.joinRoom(data.userId, data.roomId)

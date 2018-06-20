@@ -1,47 +1,5 @@
 import React, { Component } from 'react'
 import GridRow from './GridRow'
-<<<<<<< HEAD
-
-class Grid extends Component {
-  constructor(props) {
-    super(props)
-    this.terominoes = {
-      o: [[-1, 0],[0,-1],[-1,-1]],
-      i: [[-2,0],[-1,0],[1,0]],
-      z: [[0,-1],[1,0],[1,1]],
-      s: [[0,1],[1,0],[1,-1]],
-      l: [[-1,0],[1,0],[1,1]],
-      j: [[0,-1],[-1,0],[-2,0]],
-      t: [[-1,0],[0,-1],[0,1]]
-    }
-
-    this.state = {
-      rows: new Array(20),
-      currentPiece: [],
-      referencePoint: [0,5],
-      holdPiece:[],
-      queueOfPieces: [],
-      rotationAngle: 3
-    }
-    this.hasReachedBottom = this.hasReachedBottom.bind(this)
-    this.keyboardEvent = this.keyboardEvent.bind(this)
-    this.onMoveHorizontal = this.onMoveHorizontal.bind(this)
-    this.onMoveDown = this.onMoveDown.bind(this)
-  }
-
-  componentDidMount() {
-      this.setUpQueue()
-      this.setState({
-        currentPiece: this.getNextPiece()
-      })
-      const result = this.setUpGrid()
-      this.updateBoard()
-      this.event = this.keyboardEvent()
-    }
-
-    placePiece = (rows, color) => {
-    let piece = this.state.currentPiece
-=======
 import Instructions from '../Instructions'
 
 import { connect } from 'react-redux'
@@ -108,7 +66,6 @@ class Grid extends Component {
 
   placePiece = (rows, color) => {
     let piece = this.state.currentPiece.blocks
->>>>>>> newRow
     const coord = this.state.referencePoint
     if(!piece || piece.length < 1){
       piece = this.getNextPiece()
@@ -119,15 +76,6 @@ class Grid extends Component {
         rows[coord[0] + piece[i][0]][coord[1] + piece[i][1]] = color
       }
     }
-<<<<<<< HEAD
-    this.setState({
-      rows: rows
-    })
-
-    return rows
-  }
-
-=======
 
     this.setState({
       rows: rows
@@ -139,7 +87,6 @@ class Grid extends Component {
     this.init()
   }
 
->>>>>>> newRow
   canPlacePiece(coord, piece, i){
     return coord[0] + piece[i][0] > -1 && coord[1] + piece[i][1] >= 0 && coord[1] + piece[i][1] < 10
   }
@@ -158,16 +105,9 @@ class Grid extends Component {
     this.placePiece(rows, 2)
   }
 
-<<<<<<< HEAD
- canMoveHorizontally = (direction) => {
-   const piece = [...this.state.currentPiece, [0,0]]
-   const rows = this.state.rows
-   console.log(piece)
-=======
  canMoveHorizontally = (direction, pieces = null) => {
    const piece = pieces ? pieces : [...this.state.currentPiece.blocks, [0,0]]
    const rows = this.state.rows
->>>>>>> newRow
    for(let i = 0; i < piece.length; i++){
      if(!this.isIrrelevantPiece(piece[i], piece, direction) && this.hasCellDirectlyHorizontal(rows, piece[i], direction)){
        return false
@@ -185,12 +125,6 @@ class Grid extends Component {
 
   updateBoard = () => {
     const that = this
-<<<<<<< HEAD
-    setInterval(()=>{
-      // if(this.props.playGame)
-        that.moveDown()
-    }, 1000)
-=======
     console.log('inside updateboard');
     this.props.socket.send(JSON.stringify({
       subscription: this.props.roomId,
@@ -206,23 +140,16 @@ class Grid extends Component {
         that.moveDown()
 
     }, this.state.speed)
->>>>>>> newRow
   }
 
   setUpGrid = () => {
     let result = this.state.rows
-<<<<<<< HEAD
-=======
     let animation = this.state.visibleAnimation
->>>>>>> newRow
     let i = 0
     let j = 0
     for (i = 0; i < result.length; i++) {
       result[i] =  new Array(10)
-<<<<<<< HEAD
-=======
-      animation[i] = false
->>>>>>> newRow
+        animation[i] = false
       for(j = 0; j < result[i].length; j++){
         result[i][j] = 0
       }

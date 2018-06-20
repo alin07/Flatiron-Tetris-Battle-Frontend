@@ -249,7 +249,9 @@ class Game extends Component {
              ? <PlayerBoard ref={ref => { this.child = ref }} holdRows={this.state.userHoldNext.you.hold} nextRows={this.state.userHoldNext.you.next} canPlay={this.state.canPlay} roomId={this.roomId} tetrominoes={this.state.tetrominoes} socket={this.socket} key={you._id} user={you} />
              : <h1>WAITING FOR OTHER PLAYER...</h1>
         }
+
          { this.state.canPlay ? otherPlayers : null }
+
          <div id="instructions-container">
            { this.room && this.room.host === localStorage.userId && this.state.gameOver
              ? <Button onClick={this.onRestartGame}>Restart Game</Button>

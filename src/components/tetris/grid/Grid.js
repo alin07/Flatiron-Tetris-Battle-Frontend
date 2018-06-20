@@ -229,11 +229,13 @@ class Grid extends Component {
   shuffleQueue = (queue) => {
     let ran = 0
     let temp = 0
-    for(let i = 0; i < queue.length; i++){
-      ran = Math.floor(Math.random() * (queue.length))
-      temp = queue[i]
-      queue[i] = queue[ran]
-      queue[ran] = temp
+    for(let j = 0; j < 2; j ++){
+      for(let i = 0; i < queue.length; i++){
+        ran = Math.floor(Math.random() * (queue.length))
+        temp = queue[i]
+        queue[i] = queue[ran]
+        queue[ran] = temp
+      }
     }
     return queue
   }
@@ -268,14 +270,16 @@ class Grid extends Component {
         this.setState({
           currentPiece: this.getNextPiece(),
           holdPiece: current,
-          swapped: true
+          swapped: true,
+          referencePoint: [0,5]
         })
       }
       else{
         this.setState({
           currentPiece: this.state.holdPiece,
           holdPiece: current,
-          swapped: true
+          swapped: true,
+          referencePoint: [0,5]
         })
       }
       this.placePiece(this.state.rows, this.state.currentPiece.color)

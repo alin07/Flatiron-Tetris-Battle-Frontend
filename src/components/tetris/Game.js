@@ -236,9 +236,9 @@ class Game extends Component {
 
     const isSpectator = !localStorage.userId || (localStorage.userId && this.props.users.filter(u => u._id === localStorage.userId).length < 1)
     const you = this.props.users.find(u => u._id === localStorage.userId)
-    const otherPlayers = !isSpectator
-      ? this.props.users.filter(u => u._id !== localStorage.userId).map((u, i) => <OtherPlayersBoard key={i} user={u} hold={this.state.userHoldNext.opponent.hold} next={this.state.userHoldNext.opponent.next} />)
-      : this.props.users.map((u, i) => <OtherPlayersBoard key={i} user={u} hold={this.state.userHoldNext.opponent.hold} next={this.state.userHoldNext.opponent.next} />)
+    let otherPlayers = this.props.users.filter(u => u._id !== localStorage.userId)
+    otherPlayers = otherPlayers.length > 0 ? otherPlayers.map((u, i) => <OtherPlayersBoard key={i} user={u} hold={this.state.userHoldNext.opponent.hold} next={this.state.userHoldNext.opponent.next} />) : null
+    debugger
     return (
       <div id="game-wrapper">
          {

@@ -14,7 +14,7 @@ export default function createRoom(name) {
       dispatch(createRoomAsync(r))
       return r
     }).then((r) => {
-       window.location.href = 'http://localhost:3001/r/'+r._id
+       window.location.href = 'https://flatiron-developers.herokuapp.com/r/'+r._id
     })
   }
 }

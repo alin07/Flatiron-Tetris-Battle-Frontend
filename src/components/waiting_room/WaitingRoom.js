@@ -17,7 +17,7 @@ class WaitingRoom extends Component {
     super(props)
     const currentUrl = this.props.history.location.pathname
     this.roomId = currentUrl.substring(currentUrl.indexOf('/', 2)+1)
-    this.userSocket = new WebSocket("ws://flatiron-tetris-battle-backend.herokuapp.com")
+    this.userSocket = new WebSocket("wss://flatiron-tetris-battle-backend.herokuapp.com")
     this.state = {
       room: {},
     }

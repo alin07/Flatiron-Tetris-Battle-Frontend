@@ -23,7 +23,7 @@ class Game extends Component {
   constructor(props) {
     super(props)
     const currentUrl = this.props.history.location.pathname
-    this.socket = new WebSocket("ws://flatiron-tetris-battle-backend.herokuapp.com")
+    this.socket = new WebSocket("wss://flatiron-tetris-battle-backend.herokuapp.com")
     this.roomId = currentUrl.substring(currentUrl.indexOf('/', 2)+1)
     this.state = {
       tetrominoes: {

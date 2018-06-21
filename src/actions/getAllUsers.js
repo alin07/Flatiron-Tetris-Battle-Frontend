@@ -2,7 +2,7 @@ import { GET_ALL_USERS } from './types'
 
 export default function getAllUsers(id, hostId) {
   return dispatch => {
-    fetch('https://flatiron-tetris-battle-backend.herokuapp.com/api/v1/users/'+id)
+    fetch('http://192.168.5.194:3000/api/v1/users/'+id)
       .then(r => r.json())
       .then(r => {
         dispatch(getAllUsersAsync(r, hostId))

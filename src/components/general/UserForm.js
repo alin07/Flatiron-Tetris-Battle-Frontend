@@ -6,7 +6,7 @@ class UserFormContainer extends Component {
   userFormOnSubmit = (event) => {
     event.preventDefault()
     const inputs = event.target.querySelectorAll('input')
-    fetch('http://localhost:3000/'+this.props.task.toLowerCase(), {
+    fetch('http://192.168.5.194:3000/'+this.props.task.toLowerCase(), {
       method:'POST',
       headers: { //
         'Content-Type': 'application/json'

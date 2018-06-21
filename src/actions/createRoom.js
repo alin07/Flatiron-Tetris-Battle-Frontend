@@ -7,7 +7,7 @@ export default function createRoom(event) {
   console.log(room)
 
   return dispatch => {
-    fetch('http://localhost:3000/api/v1/rooms', {
+    fetch('http://192.168.5.194:3000/api/v1/rooms', {
       method:'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -24,6 +24,7 @@ export default function createRoom(event) {
 
 const createRoomAsync = (room) => {
   return {
+    type: CREATE_ROOM,
     type: CREATE_ROOM,
     payload: room
   }

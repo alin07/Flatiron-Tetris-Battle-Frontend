@@ -23,7 +23,7 @@ class Game extends Component {
   constructor(props) {
     super(props)
     const currentUrl = this.props.history.location.pathname
-    this.socket = new WebSocket("ws://localhost:3000")
+    this.socket = new WebSocket("ws://192.168.5.194:3000")
     this.roomId = currentUrl.substring(currentUrl.indexOf('/', 2)+1)
     this.state = {
       tetrominoes: {
@@ -53,7 +53,7 @@ class Game extends Component {
   }
 
   componentDidMount() {
-    fetch('http://localhost:3000/api/v1/rooms/'+this.roomId)
+    fetch('http://192.168.5.194:3000/api/v1/rooms/'+this.roomId)
       .then(r => r.json())
       .then(r => {
         this.room = r

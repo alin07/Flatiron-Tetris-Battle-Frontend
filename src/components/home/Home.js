@@ -12,7 +12,7 @@ import CreateRoomModal from './CreateRoomModal'
 class Home extends Component {
   constructor(props){
     super(props)
-    this.socket = new WebSocket("ws://localhost:3000")
+    this.socket = new WebSocket("ws://flatiron-tetris-battle-backend.herokuapp.com")
   }
 
   componentDidMount() {

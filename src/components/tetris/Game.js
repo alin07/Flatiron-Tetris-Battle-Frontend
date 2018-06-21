@@ -23,7 +23,7 @@ class Game extends Component {
   constructor(props) {
     super(props)
     const currentUrl = this.props.history.location.pathname
-    this.socket = new WebSocket("ws://localhost:3000")
+    this.socket = new WebSocket("ws://flatiron-tetris-battle-backend.herokuapp.com")
     this.roomId = currentUrl.substring(currentUrl.indexOf('/', 2)+1)
     this.state = {
       tetrominoes: {
@@ -53,7 +53,7 @@ class Game extends Component {
   }
 
   componentDidMount() {
-    fetch('http://localhost:3000/api/v1/rooms/'+this.roomId)
+    fetch('https://flatiron-tetris-battle-backend.herokuapp.com/api/v1/rooms/'+this.roomId)
       .then(r => r.json())
       .then(r => {
         this.room = r
@@ -236,7 +236,7 @@ class Game extends Component {
 
     const isSpectator = !localStorage.userId || (localStorage.userId && this.props.users.filter(u => u._id === localStorage.userId).length < 1)
     const you = this.props.users.find(u => u._id === localStorage.userId)
-    
+
     const otherPlayers = !isSpectator
       ? this.props.users.filter(u => u._id !== localStorage.userId).map((u, i) => <OtherPlayersBoard key={i} user={u} hold={this.state.userHoldNext.opponent.hold} next={this.state.userHoldNext.opponent.next} />)
       : this.props.users.map((u, i) => <OtherPlayersBoard key={i} user={u} hold={this.state.userHoldNext.opponent.hold} next={this.state.userHoldNext.opponent.next} />)

@@ -2,7 +2,7 @@ import { GET_ROOM } from './types'
 
 export default function getRoom(id) {
   return dispatch => {
-    fetch('http://localhost:3000/api/v1/rooms/'+id)
+    fetch('https://flatiron-tetris-battle-backend.herokuapp.com/api/v1/rooms/'+id)
       .then(r => r.json())
       .then(r => {
         dispatch(getRoomAsync(r))

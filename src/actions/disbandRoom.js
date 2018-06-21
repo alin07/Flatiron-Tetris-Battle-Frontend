@@ -2,7 +2,7 @@ import { DISBAND_ROOM } from './types'
 
 export default function disbandRoom(roomId) {
   return dispatch => {
-    fetch('http://localhost:3000/api/v1/rooms/'+roomId, {
+    fetch('https://flatiron-tetris-battle-backend.herokuapp.com/api/v1/rooms/'+roomId, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json'

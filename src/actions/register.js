@@ -2,7 +2,7 @@ import { REGISTER } from './types'
 
 export default function register(event) {
   return dispatch => {
-    fetch('http://localhost:3000/login', {
+    fetch('https://flatiron-tetris-battle-backend.herokuapp.com/login', {
       method:'POST',
       headers: { //
         'Content-Type': 'application/json'

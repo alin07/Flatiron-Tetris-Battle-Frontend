@@ -6,7 +6,7 @@ export default function createRoom(name) {
   const room = { name: name, host: id, users: [id] }
   console.log(room)
   return dispatch => {
-    fetch('http://localhost:3000/api/v1/rooms', {
+    fetch('https://flatiron-tetris-battle-backend.herokuapp.com/api/v1/rooms', {
       method:'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -17,7 +17,7 @@ export default function createRoom(name) {
       return r
     }).then((r) => {
 
-       window.location.href = 'http://localhost:3001/r/'+r._id
+       window.location.href = 'https://flatiron-battle-tetris.herokuapp.com/r/'+r._id
     })
   }
 }

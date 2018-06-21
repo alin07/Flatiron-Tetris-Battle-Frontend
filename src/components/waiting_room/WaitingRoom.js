@@ -27,11 +27,7 @@ class WaitingRoom extends Component {
   componentDidMount() {
     console.log('room id: '+this.roomId)
     // this.props.getRoom(this.roomId)
-<<<<<<< HEAD
-    fetch('https://flatiron-tetris-battle-backend.herokuapp.com/api/v1/rooms/'+this.roomId)
-=======
     fetch('http://192.168.5.194:3000/api/v1/rooms/'+this.roomId)
->>>>>>> newRow
       .then(r => r.json())
       .then(r => {
         this.setState({

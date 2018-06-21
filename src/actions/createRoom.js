@@ -2,9 +2,7 @@ import { CREATE_ROOM } from './types'
 
 export default function createRoom(name) {
   const id = localStorage.userId
-  const username = localStorage.username
   const room = { name: name, host: id, users: [id] }
-  console.log(room)
   return dispatch => {
     fetch('http://192.168.5.194:3000/api/v1/rooms', {
       method:'POST',
@@ -16,15 +14,13 @@ export default function createRoom(name) {
       dispatch(createRoomAsync(r))
       return r
     }).then((r) => {
-
-       window.location.href = 'https://flatiron-battle-tetris.herokuapp.com/r/'+r._id
+       window.location.href = 'http://localhost:3001/r/'+r._id
     })
   }
 }
 
 const createRoomAsync = (room) => {
   return {
-    type: CREATE_ROOM,
     type: CREATE_ROOM,
     payload: room
   }

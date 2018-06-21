@@ -13,7 +13,7 @@ const CreateRoomModal = (props) => {
       <Modal.Header>Create a Room</Modal.Header>
       <Modal.Content>
         <Modal.Description>
-          <Form onSubmit={props.createRoom}>
+          <Form onSubmit={(event) => { props.createRoom(event.target.querySelector('input').value)}}>
             <Form.Field>
               <label>Room Name</label>
               <input onChange={props.setNewRoom} />
@@ -29,7 +29,7 @@ const CreateRoomModal = (props) => {
 function mapDispatchToProps(dispatch){
   return bindActionCreators({
     setNewRoom,
-    createRoom
+    createRoom: (name) => createRoom(name)
   }, dispatch)
 }
 
